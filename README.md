@@ -1,1 +1,1 @@
-# skeniraj-in-naroci
+# Skeniraj in naroci
