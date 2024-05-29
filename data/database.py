@@ -2,7 +2,7 @@ import psycopg2
 import psycopg2.extras
 from typing import List
 
-from model import User, Restaurant, Table, Item, MenuItem, Order, OrderItem
+from model import AppUser, Restaurant, Table, Item, MenuItem, Order, OrderItem
 
 from .auth_public import db, host, user, password
 
@@ -11,16 +11,18 @@ class Repo:
         self.conn = psycopg2.connect(database=db, host=host, user=user, password=password)
         self.cur = self.conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
-    def add_user(self, user: User):
+    def add_appuser(self, user: AppUser):
         """
         Adds a user to the database.
         """
-        cmd = "INSERT INTO User (username, name, password, gender) VALUES (%s, %s, %s, %s) RETURNING id"
+        cmd = "INSERT INTO AppUser (username, name, password, gender) VALUES (%s, %s, %s, %s) RETURNING id"
         data = (user.username, user.name, user.password, user.gender)
         self.cur.execute(cmd, data)
         user.id = self.cur.fetchone()[0]
         self.conn.commit()
         return user.id
+    
+#### Predelal sem samo tega prvega, pri drugih so še imena napačna, edina pravilna so v create_db.sql
 
     def add_item(self, item: Item):
         """

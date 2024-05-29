@@ -77,8 +77,12 @@ WSGI_APPLICATION = 'skeniraj_in_naroci.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'sem2024_galz',
+        'USER': 'javnost',
+        'PASSWORD': 'javnogeslo',
+        'HOST': 'baza.fmf.uni-lj.si',
+        'PORT': '5432',
     }
 }
 

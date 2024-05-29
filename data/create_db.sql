@@ -1,4 +1,4 @@
-CREATE TABLE User (
+CREATE TABLE AppUser (
     id SERIAL PRIMARY KEY,
     username VARCHAR(150) UNIQUE NOT NULL,
     name VARCHAR(150),
@@ -6,42 +6,42 @@ CREATE TABLE User (
     gender VARCHAR(10)
 );
 
-CREATE TABLE restaurant (
+CREATE TABLE Restaurant (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     location VARCHAR(255) NOT NULL,
-    owner_id INTEGER REFERENCES User(id) ON DELETE SET NULL
+    owner_id INTEGER REFERENCES AppUser(id) ON DELETE SET NULL
 );
 
-CREATE TABLE table (
+CREATE TABLE DiningTable (
     id SERIAL PRIMARY KEY,
-    restaurant_id INTEGER REFERENCES restaurant(id) ON DELETE CASCADE
+    restaurant_id INTEGER REFERENCES Restaurant(id) ON DELETE CASCADE
 );
 
-CREATE TABLE item (
+CREATE TABLE Item (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     value NUMERIC(10, 2) NOT NULL,
     allergen VARCHAR(255)
 );
 
-CREATE TABLE menu_item (
-    table_id INTEGER REFERENCES table(id) ON DELETE CASCADE,
-    item_id INTEGER REFERENCES item(id) ON DELETE CASCADE,
-    PRIMARY KEY (table_id, item_id)
+CREATE TABLE MenuItem (
+    dining_table_id INTEGER REFERENCES DiningTable(id) ON DELETE CASCADE,
+    item_id INTEGER REFERENCES Item(id) ON DELETE CASCADE,
+    PRIMARY KEY (dining_table_id, item_id)
 );
 
-CREATE TABLE order (
+CREATE TABLE CustomerOrder (
     id SERIAL PRIMARY KEY,
     status VARCHAR(100) NOT NULL,
     date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    table_id INTEGER REFERENCES table(id) ON DELETE CASCADE,
-    user_id INTEGER REFERENCES User(id) ON DELETE SET NULL
+    table_id INTEGER REFERENCES DiningTable(id) ON DELETE CASCADE,
+    user_id INTEGER REFERENCES AppUser(id) ON DELETE SET NULL
 );
 
-CREATE TABLE order_item (
-    order_id INTEGER REFERENCES order(id) ON DELETE CASCADE,
-    item_id INTEGER REFERENCES item(id) ON DELETE CASCADE,
+CREATE TABLE OrderItem (
+    customer_order_id INTEGER REFERENCES CustomerOrder(id) ON DELETE CASCADE,
+    item_id INTEGER REFERENCES Item(id) ON DELETE CASCADE,
     quantity INTEGER NOT NULL,
-    PRIMARY KEY (order_id, item_id)
+    PRIMARY KEY (customer_order_id, item_id)
 );
