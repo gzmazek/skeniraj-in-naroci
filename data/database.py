@@ -2,16 +2,17 @@ import psycopg2
 import psycopg2.extras
 from typing import List
 
-from model import AppUser, Restaurant, Table, Item, MenuItem, Order, OrderItem
+from model import User, Restaurant, Table, Item, MenuItem, Order, OrderItem
 
 from .auth_public import db, host, user, password
+
 
 class Repo:
     def __init__(self):
         self.conn = psycopg2.connect(database=db, host=host, user=user, password=password)
         self.cur = self.conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
-    def add_appuser(self, user: AppUser):
+    def add_appuser(self, user: User):
         """
         Adds a user to the database.
         """

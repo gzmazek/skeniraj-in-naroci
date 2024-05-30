@@ -1,11 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Home Page</title>
-</head>
-<body>
-    <h1>Welcome to the Home Page</h1>
-    <p>You are logged in!</p>
-</body>
-</html>
+{% extends 'accounts/base_generic.html' %}
+
+{% block title %}Home Page{% endblock %}
+
+{% block content %}
+<h1>Welcome to the Home Page</h1>
+<p>This is the content of the home page.</p>
+{% endblock %}

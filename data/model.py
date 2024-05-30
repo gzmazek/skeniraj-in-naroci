@@ -5,7 +5,6 @@ from dataclasses_json import dataclass_json
 
 @dataclass_json
 @dataclass
-
 class User:
     id: int = field(default=None)
     username: str = field(default=None)

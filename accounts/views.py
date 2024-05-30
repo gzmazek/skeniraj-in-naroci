@@ -20,7 +20,7 @@ def register(request):
 
             with connection.cursor() as cursor:
                 cursor.execute("""
-                    INSERT INTO accounts_appuser (username, name, password, gender)
+                    INSERT INTO AppUser (username, name, password, gender)
                     VALUES (%s, %s, %s, %s)
                 """, [username, name, hashed_password, gender])
             
