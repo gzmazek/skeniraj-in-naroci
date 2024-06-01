@@ -2,11 +2,24 @@ import psycopg2
 import psycopg2.extras
 from typing import List
 
-from model import User, Restaurant, Table, Item, MenuItem, Order, OrderItem
+from .model import User, Restaurant, Table, Item, MenuItem, Order, OrderItem
 
 from .auth_public import db, host, user, password
 
+from django.db import connection
 
+## TODO: add exception catching, so that it returns some error if something goes wrong
+def add_appuser(user: User):
+    """
+    Adds a user to the database.
+    """
+    with connection.cursor() as cursor:
+        cmd = "INSERT INTO AppUser (username, name, password, gender) VALUES (%s, %s, %s, %s) RETURNING id"
+        data = (user.username, user.name, user.password, user.gender)
+        cursor.execute(cmd, data)
+        user.id = cursor.fetchone()[0]
+
+## TODO: rewrite all these class functions as above, so it uses django db connection
 class Repo:
     def __init__(self):
         self.conn = psycopg2.connect(database=db, host=host, user=user, password=password)

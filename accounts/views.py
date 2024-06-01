@@ -4,6 +4,9 @@ from .forms import RegistrationForm
 from django.db import connection
 import hashlib
 
+import data.database as db
+import data.model as mod
+
 def home(request):
     return render(request, 'accounts/home.html')
 
@@ -18,11 +21,8 @@ def register(request):
             
             hashed_password = hashlib.sha256(password.encode()).hexdigest()
 
-            with connection.cursor() as cursor:
-                cursor.execute("""
-                    INSERT INTO AppUser (username, name, password, gender)
-                    VALUES (%s, %s, %s, %s)
-                """, [username, name, hashed_password, gender])
+            user = mod.User(username=username, password=hashed_password, name=name, gender=gender)
+            db.add_appuser(user)
             
             return HttpResponse("User registered successfully")
     else:
