@@ -7,10 +7,10 @@ from dataclasses_json import dataclass_json
 @dataclass
 class User:
     id: int = field(default=None)
-    username: str = field(default=None)
+    email: str = field(default=None)
     name: str = field(default=None)
+    surname: str = field(default=None)
     password: str = field(default=None)
-    gender: str = field(default=None)
 
 @dataclass_json
 @dataclass

@@ -14,10 +14,17 @@ def add_appuser(user: User):
     Adds a user to the database.
     """
     with connection.cursor() as cursor:
-        cmd = "INSERT INTO AppUser (username, name, password, gender) VALUES (%s, %s, %s, %s) RETURNING id"
-        data = (user.username, user.name, user.password, user.gender)
-        cursor.execute(cmd, data)
-        user.id = cursor.fetchone()[0]
+        #cmd = "INSERT INTO AppUser (email, name, password) VALUES (%s, %s, %s) RETURNING id"
+        #data = (user.email, user.name, user.password)
+        #cursor.execute(cmd, data)
+        #user.id = cursor.fetchone()[0]
+
+        user.id = 0 # Just for test
+    return user
+
+## TODO: Implement this function that gets a user by email from database
+def getUserByEmail(email: str):
+    return None
 
 ## TODO: rewrite all these class functions as above, so it uses django db connection
 class Repo:
