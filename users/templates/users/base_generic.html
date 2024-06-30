@@ -30,6 +30,7 @@
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'sign-in' %}">Login</a>
                         </li>
+                        {% block extra-nav-items %}{% endblock %}
                     </ul>
                 </div>
             </div>

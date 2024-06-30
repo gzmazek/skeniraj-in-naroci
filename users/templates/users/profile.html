@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+{% extends 'users/base_generic.html' %}
+
+{% block title %}Profile{% endblock %}
+
+{% block content %}
+<h1>Welcome to the Profile Page</h1>
+<p>This is the content of the profile page.</p>
+{% endblock %}
+
+{% block extra-nav-items %}
+<li class="nav-item">
+    <a class="nav-link" href="{% url 'sign-out' %}">Sign out</a>
+</li>
+{% endblock %}

@@ -79,7 +79,7 @@ WSGI_APPLICATION = 'skeniraj_in_naroci.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'sem2024_galz',
+        'NAME': 'sem2024_vitol',
         'USER': 'javnost',
         'PASSWORD': 'javnogeslo',
         'HOST': 'baza.fmf.uni-lj.si',
@@ -132,3 +132,8 @@ STATICFILES_DIRS = [
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
+SESSION_COOKIE_NAME = 'scan&order_session_id'  # Customize session cookie name (optional)
+SESSION_COOKIE_HTTPONLY = True  # Set to True to prevent client-side JavaScript from accessing the cookie
+SESSION_COOKIE_AGE = 3600 # in seconds
