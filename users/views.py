@@ -43,6 +43,7 @@ def sign_in(request):
         if form.is_valid():
             email = form.cleaned_data['email']
             password = form.cleaned_data['password']
+            remember_me = form.cleaned_data['remember_me']
 
             user =  db.getUserByEmail(email) # gets user from database
 
@@ -71,13 +72,14 @@ def sign_in(request):
 def profile(request):
     if 'user_id' in request.session:
         user_id = request.session['user_id']
+        print(user_id)
         return render(request, 'users/profile.html')
     else:
         return redirect('sign-in')
     
 def sign_out(request):
     # Clear session
-    request.session.clear()
+    request.session.flush()
     
     # Redirect to the home page
     return redirect('home')

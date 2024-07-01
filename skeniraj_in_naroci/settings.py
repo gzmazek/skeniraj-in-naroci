@@ -135,5 +135,5 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
 SESSION_COOKIE_NAME = 'scan&order_session_id'  # Customize session cookie name (optional)
-SESSION_COOKIE_HTTPONLY = True  # Set to True to prevent client-side JavaScript from accessing the cookie
-SESSION_COOKIE_AGE = 3600 # in seconds
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SECURE = False  # Set to True in production

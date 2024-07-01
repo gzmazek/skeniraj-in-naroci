@@ -20,7 +20,6 @@ def add_appuser(user: User):
         user.id = cursor.fetchone()[0]
     return user
 
-## TODO: Implement this function that gets a user by email from database
 def getUserByEmail(email: str):
     """
     Returns user with given email if it exists

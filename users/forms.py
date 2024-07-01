@@ -1,7 +1,4 @@
 from django import forms
-from django.core.exceptions import ValidationError
-import data.database as db
-import hashlib
 
 class RegistrationForm(forms.Form):
     email = forms.CharField(max_length=150)
