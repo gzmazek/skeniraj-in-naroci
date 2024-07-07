@@ -36,6 +36,39 @@ def getUserByEmail(email: str):
     else:
         user = User(user[0],user[1],user[2],user[3],user[4])
         return user
+    
+def getRestaurantsOfOwner(user_id: int):
+    """
+    Returns the list of all restaurants owned by some user with user_id
+    """
+    restaurants = []
+    with connection.cursor() as cursor:
+        cmd = "SELECT * FROM Restaurant WHERE owner_id = %s"
+        data = (user_id,)
+        cursor.execute(cmd, data)
+        list = cursor.fetchall()
+
+        for el in list:
+            restaurants.append(Restaurant(el[0], el[1], el[2], el[3]))
+
+    return restaurants
+
+def getRestaurantByID(restaurant_id: int):
+    """
+    Returns restaurant with given ID
+    """
+    rest = None
+    with connection.cursor() as cursor:
+        cmd = "SELECT * FROM Restaurant WHERE id = %s"
+        data = (restaurant_id,)
+        cursor.execute(cmd, data)
+        rest = cursor.fetchone()
+
+    if rest is None:
+        return None
+    else:
+        return Restaurant(rest[0],rest[1],rest[2],rest[3])
+        
 
 ## TODO: rewrite all these class functions as above, so it uses django db connection
 class Repo:
@@ -53,6 +86,7 @@ class Repo:
         user.id = self.cur.fetchone()[0]
         self.conn.commit()
         return user.id
+        
     
 #### Predelal sem samo tega prvega, pri drugih so še imena napačna, edina pravilna so v create_db.sql
 

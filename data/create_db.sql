@@ -1,9 +1,9 @@
 CREATE TABLE AppUser (
     id SERIAL PRIMARY KEY,
-    username VARCHAR(150) UNIQUE NOT NULL,
-    name VARCHAR(150),
-    password VARCHAR(128) NOT NULL,
-    gender VARCHAR(10)
+    email VARCHAR(255) UNIQUE NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    surname VARCHAR(255) NOT NULL,
+    password VARCHAR(255) NOT NULL
 );
 
 CREATE TABLE Restaurant (
@@ -22,20 +22,20 @@ CREATE TABLE Item (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     value NUMERIC(10, 2) NOT NULL,
-    allergen VARCHAR(255)
+    tags BYTEA DEFAULT E'\\x00000000'
 );
 
-CREATE TABLE MenuItem (
-    dining_table_id INTEGER REFERENCES DiningTable(id) ON DELETE CASCADE,
+CREATE TABLE RestaurantMenu (
+    restaurant_id INTEGER REFERENCES Restaurant(id) ON DELETE CASCADE,
     item_id INTEGER REFERENCES Item(id) ON DELETE CASCADE,
-    PRIMARY KEY (dining_table_id, item_id)
+    PRIMARY KEY (restaurant_id, item_id)
 );
 
 CREATE TABLE CustomerOrder (
     id SERIAL PRIMARY KEY,
     status VARCHAR(100) NOT NULL,
     date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    table_id INTEGER REFERENCES DiningTable(id) ON DELETE CASCADE,
+    table_id INTEGER REFERENCES DiningTable(id) ON DELETE SET NULL,
     user_id INTEGER REFERENCES AppUser(id) ON DELETE SET NULL
 );
 

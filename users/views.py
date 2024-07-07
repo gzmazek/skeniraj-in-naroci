@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from .forms import RegistrationForm, SignInForm
 import hashlib
 from django.contrib import messages
+from django.views.decorators.cache import cache_control
 
 import data.database as db
 import data.model as mod
@@ -69,6 +70,7 @@ def sign_in(request):
         form = SignInForm()
     return render(request, 'users/sign-in.html', {'form': form})
 
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def profile(request):
     if 'user_id' in request.session:
         user_id = request.session['user_id']
@@ -79,7 +81,7 @@ def profile(request):
     
 def sign_out(request):
     # Clear session
-    request.session.flush()
+    del request.session['user_id']
     
     # Redirect to the home page
     return redirect('home')
