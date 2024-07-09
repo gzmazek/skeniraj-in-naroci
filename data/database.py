@@ -9,7 +9,7 @@ from .auth_public import db, host, user, password
 from django.db import connection
 
 ## TODO: add exception catching, so that it returns some error if something goes wrong
-def add_appuser(user: User):
+def addAppuser(user: User):
     """
     Adds a user to the database.
     """
@@ -69,6 +69,16 @@ def getRestaurantByID(restaurant_id: int):
     else:
         return Restaurant(rest[0],rest[1],rest[2],rest[3])
         
+def addRestaurant(restaurant: Restaurant):
+    """
+    Adds a new restaurant to the database
+    """
+    with connection.cursor() as cursor:
+        cmd = "INSERT INTO Restaurant (name, location, owner_id) VALUES (%s, %s, %s) RETURNING id"
+        data = (restaurant.name, restaurant.location, restaurant.owner_id)
+        cursor.execute(cmd, data)
+        restaurant.id = cursor.fetchone()[0]
+    return restaurant
 
 ## TODO: rewrite all these class functions as above, so it uses django db connection
 class Repo:

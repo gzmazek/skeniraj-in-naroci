@@ -5,6 +5,7 @@ import hashlib
 
 from django.contrib import messages
 from django.views.decorators.cache import cache_control
+from owners.forms import AddRestaurantForm
 
 import data.database as db
 import data.model as mod
@@ -17,8 +18,25 @@ from owners.decorators import owner_required, restaurant_access_required
 @owner_required
 def profile(request):
     owner_id = request.session['owner_id'][0]
+    print(owner_id)
+    if request.method == 'POST':
+        form = AddRestaurantForm(request.POST)
+        print("Request: POST")
+        if form.is_valid():
+            print("Valid form")
+            name = form.cleaned_data['name']
+            address = form.cleaned_data['address']
+            rest = db.addRestaurant(mod.Restaurant(name=name, location=address, owner_id=owner_id))
+
+            # Update list of allowed restaurants
+            list = request.session['owner_id'][1]
+            list.append(rest.id)
+            request.session['owner_id'] = (owner_id, list)
+    else:
+        form = AddRestaurantForm()
+
     restaurants = db.getRestaurantsOfOwner(owner_id)
-    return render(request, 'owners/profile.html', {'restaurants': restaurants})
+    return render(request, 'owners/profile.html', {'restaurants': restaurants,'form': form})
 
 
 def sign_in(request):
