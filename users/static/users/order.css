@@ -1,0 +1,22 @@
+html,
+body {
+  height: 100%;
+}
+
+.form-order {
+  max-width: 800px;
+  padding: 1rem;
+}
+
+.custom-form-input{
+  width: 50px;
+}
+
+.custom-form-input:focus{
+  outline: 0;
+}
+
+.btn-quantity{
+  width: 24px;
+  height: 24px;
+}

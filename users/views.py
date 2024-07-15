@@ -11,18 +11,7 @@ import data.model as mod
 
 import json
 
-from users.decorators import user_sign_in_required
-
-from decimal import Decimal
-from datetime import datetime
-
-class OrdersEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, Decimal):
-            return float(obj)
-        if isinstance(obj, datetime):
-            return obj.isoformat()
-        return super().default(obj)
+from users.decorators import user_sign_in_required, active_order
 
 def home(request):
     return render(request, 'users/home.html')
@@ -115,6 +104,68 @@ def profile(request):
     orders = [json.loads(order) for order in orders_json]
     
     return render(request, 'users/profile.html', {'orders': orders})
+
+@user_sign_in_required
+def order(request, table_id: int):
+    request.session['table_id'] = table_id
+
+    restaurant = db.getRestaurantFromTableID(table_id)
+    if restaurant == None:
+        return render(request, 'users/table_not_exist.html')
+    
+    menu = db.getRestaurantMenu(restaurant.id)
+
+    if request.method == 'POST':
+        selected_items = []
+        selected_item_quantities = []
+        for item in menu:
+            quantity = request.POST.get(f'quantity_{item.id}', 0)
+            quantity = int(quantity)
+
+            if quantity > 0:
+                selected_items.append(item.to_dict())
+                selected_item_quantities.append(quantity)
+
+        request.session['selected_items'] = selected_items
+        request.session['quantities'] = selected_item_quantities
+        return redirect('order_confirm')
+
+    return render(request, 'users/order.html', {'menu': menu, 'restaurant': restaurant, 'tableID': table_id})
+
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+@user_sign_in_required
+@active_order
+def order_confirm(request):
+    selected_items = request.session['selected_items']
+    quantities = request.session['quantities']
+
+    total_price = 0
+    for item, quantity in zip(selected_items, quantities):
+        item['quantity'] = quantity
+        item['price'] = "%.2f" % (quantity * item['value'])
+        total_price += quantity * item['value']
+
+    formatted_value = "%.2f" % total_price
+    return render(request, 'users/order_confirm.html', {'items': selected_items, 'total_price': formatted_value})
+
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+@user_sign_in_required
+@active_order
+def place_order(request):
+    selected_items = request.session.pop('selected_items', {})
+    quantities = request.session.pop('quantities', {})
+    user_id = request.session['user_id']
+    table_id = request.session['table_id']
+    
+    del request.session['table_id']
+
+    order = db.addCustomerOrder(mod.CustomerOrder(user_id=user_id, table_id=table_id, status='IN PROGRESS'))
+
+    for item, quantity in zip(selected_items, quantities):
+        orderItem = mod.OrderItem(order_id=order.id, item_id=item['id'], quantity=quantity)
+        db.addItemToOrder(orderItem)
+
+    return redirect('profile')
 
 @user_sign_in_required
 def sign_out(request):

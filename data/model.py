@@ -71,3 +71,11 @@ class Order:
     item_quantities: List[int] = field(default_factory=list) 
     item_values: List[float] = field(default_factory=list)
 
+@dataclass_json
+@dataclass
+class MenuItem:
+    # Same as Item class, but without tags (bytes) field as it can't be serialized
+    id: int = field(default=None)
+    name: str = field(default=None)
+    value: float = field(default=None)
+

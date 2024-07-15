@@ -2,7 +2,7 @@ import psycopg2
 import psycopg2.extras
 from typing import List
 
-from .model import User, Restaurant, Item, Order, OrderItem
+from .model import User, Restaurant, CustomerOrder, OrderItem, Order, MenuItem
 
 from .auth_public import db, host, user, password
 
@@ -121,3 +121,77 @@ def getUserOrders(user_id: int):
             orders.append(order)
     
     return orders
+    
+def getRestaurantFromTableID(table_id: int):
+    """
+    Gets the restaurant that given table belongs to if such a table actually exists
+    """
+    with connection.cursor() as cursor:
+        cmd = """
+        SELECT
+            dt.id AS table_id,
+            r.id AS restaurant_id,
+            r.name AS name,
+            r.location AS location,
+            r.owner_id AS owner_id
+        FROM DiningTable dt
+        JOIN Restaurant r ON dt.restaurant_id = r.id
+        WHERE dt.id = %s
+        """
+        data = (table_id,)
+        cursor.execute(cmd, data)
+        restaurant = cursor.fetchone()
+        if restaurant == None:
+            return None
+        return Restaurant(id=restaurant[1], name=restaurant[2], location=restaurant[3], owner_id=restaurant[4])
+
+from decimal import Decimal
+
+def convert_decimal_to_float(value):
+    if isinstance(value, Decimal):
+        return float(value)
+    return value
+
+def getRestaurantMenu(restaurant_id: int):
+    """
+    Returns the entire restaurant menu (list of menu items)
+    """
+    menu = []  
+    with connection.cursor() as cursor:
+        cmd = """
+        SELECT
+            i.id,
+            i.name,
+            i.value
+        FROM Item i
+        JOIN RestaurantMenu m ON i.id = m.item_id
+        WHERE m.restaurant_id = %s
+        """
+        data = (restaurant_id,)
+        cursor.execute(cmd, data)
+        items = cursor.fetchall()
+        for item in items:
+            menu.append(MenuItem(id=item[0], name=item[1], value=convert_decimal_to_float(item[2])))
+
+    return menu
+
+def addCustomerOrder(order: CustomerOrder):
+    """
+    Adds a new customer order to the database
+    """
+    with connection.cursor() as cursor:
+        cmd = "INSERT INTO CustomerOrder (table_id, user_id, status) VALUES (%s, %s, %s) RETURNING id"
+        data = (order.table_id, order.user_id, order.status)
+        cursor.execute(cmd, data)
+        order.id = cursor.fetchone()[0]
+    return order
+
+def addItemToOrder(orderItem: OrderItem):
+    """
+    Adds new order item to database. 
+    Explanation: Every customer order has multiple order items, hence this items must be mapped together 
+    """
+    with connection.cursor() as cursor:
+        cmd = "INSERT INTO OrderItem (customer_order_id, item_id, quantity) VALUES (%s, %s, %s)"
+        data = (orderItem.order_id, orderItem.item_id, orderItem.quantity)
+        cursor.execute(cmd, data)

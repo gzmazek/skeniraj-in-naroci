@@ -85,8 +85,8 @@ def sign_out(request):
 
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)  # Prevents from browser caching page and hence rendering it when user is already logged out
 @restaurant_access_required
-def restaurant_dashboard(request, unique_id):
-    restaurant = db.getRestaurantByID(unique_id)  # Replace with your database logic
+def restaurant_dashboard(request, unique_id: int):
+    restaurant = db.getRestaurantByID(unique_id)
     context = {
         'restaurant': restaurant,
     }
