@@ -16,6 +16,9 @@ from users.decorators import user_sign_in_required, active_order
 def home(request):
     return render(request, 'users/home.html')
 
+def scan_qr(request):
+    return render(request, 'users/qr_reader.html')
+
 @csrf_exempt
 def process_qr(request):
     if request.method == 'POST':
