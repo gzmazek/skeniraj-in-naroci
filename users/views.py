@@ -16,6 +16,7 @@ from users.decorators import user_sign_in_required, active_order
 def home(request):
     return render(request, 'users/home.html')
 
+@user_sign_in_required
 def scan_qr(request):
     return render(request, 'users/qr_reader.html')
 
@@ -23,18 +24,27 @@ def scan_qr(request):
 def process_qr(request):
     if request.method == 'POST':
         qr_data = request.POST.get('qr_data')
+
+        # Try to convert qr_data to an integer and check if it succeeds
+        try:
+            qr_data = int(qr_data)
+            is_integer = True
+        except ValueError:
+            is_integer = False
         
-        # Process the QR data as needed
-        # For example, save the data to the database or perform some action
-        print(f"Received QR code data: {qr_data}")
-        
-        # Create a response dictionary
+        # Process the QR data based on its type
+        if is_integer:
+            # Logic for handling integer qr_data
+            redirect_url = f'http://127.0.0.1:8000/order/{qr_data}/'  # IMPORTANT: This URL needs to be changed when app will be deplyed to some domain
+        else:
+            return JsonResponse({'message': 'Invalid QR code'}, status=400)
+
         response_data = {
-            'message': 'QR code processed successfully!',
-            'qr_data': qr_data
+            'redirect_url': redirect_url
         }
-        return JsonResponse(response_data) # Return JSON response
-    return JsonResponse({'error': 'Invalid request'}, status=400)
+        return JsonResponse(response_data)
+    else:
+        return JsonResponse({'message': 'Invalid request method.'}, status=400)
 
 def register(request):
     if request.method == 'POST':
