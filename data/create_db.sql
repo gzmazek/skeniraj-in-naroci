@@ -5,7 +5,7 @@ CREATE TABLE AppUser (
     surname VARCHAR(255) NOT NULL,
     password VARCHAR(255) NOT NULL
 );
-
+activete envirn
 CREATE TABLE Restaurant (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
@@ -44,4 +44,28 @@ CREATE TABLE OrderItem (
     item_id INTEGER REFERENCES Item(id) ON DELETE CASCADE,
     quantity INTEGER NOT NULL,
     PRIMARY KEY (customer_order_id, item_id)
+);
+
+-- Dodamo nova stolpca v Table
+ALTER TABLE "diningtable" ADD COLUMN IF NOT EXISTS "position_x" INTEGER DEFAULT 0;
+ALTER TABLE "diningtable" ADD COLUMN IF NOT EXISTS "position_y" INTEGER DEFAULT 0;
+
+-- Adding status to my order
+ALTER TABLE "orderitem" ADD COLUMN IF NOT EXISTS "status" VARCHAR(50) DEFAULT 'pending';
+
+-- Create Kitchen table
+CREATE TABLE IF NOT EXISTS kitchen (
+    id SERIAL PRIMARY KEY,
+    restaurant_id INTEGER NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    FOREIGN KEY (restaurant_id) REFERENCES restaurant(id) ON DELETE CASCADE
+);
+
+-- Create KitchenItem table
+CREATE TABLE IF NOT EXISTS kitchenitem (
+    kitchen_id INTEGER NOT NULL,
+    item_id INTEGER NOT NULL,
+    PRIMARY KEY (kitchen_id, item_id),
+    FOREIGN KEY (kitchen_id) REFERENCES kitchen(id) ON DELETE CASCADE,
+    FOREIGN KEY (item_id) REFERENCES item(id) ON DELETE CASCADE
 );
