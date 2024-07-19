@@ -1,6 +1,8 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from users.forms import SignInForm
+from django.http import JsonResponse
+from owners.forms import TableForm
 import hashlib
 
 from django.contrib import messages
@@ -91,4 +93,41 @@ def restaurant_dashboard(request, unique_id: int):
         'restaurant': restaurant,
     }
     return render(request, 'owners/dashboard.html', context)
-    
+
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+@restaurant_access_required
+def restaurant_dashboard(request, unique_id: int):
+    restaurant = db.getRestaurantByID(unique_id)
+    context = {
+        'restaurant': restaurant,
+    }
+    return render(request, 'owners/dashboard.html', context)
+
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+@restaurant_access_required
+def tables_list(request, unique_id: int):
+    restaurant = db.getRestaurantByID(unique_id)
+    tables = db.getTablesByRestaurant(restaurant.id)
+    context = {
+        'restaurant': restaurant,
+        'tables': tables,
+    }
+    return render(request, 'owners/tables_list.html', context)
+
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+@restaurant_access_required
+def add_table(request, unique_id: int):
+    try:
+        restaurant = db.getRestaurantByID(unique_id)
+        table = mod.Table(restaurant_id=restaurant.id)
+        db.addTable(table)
+        messages.success(request, 'Table added successfully.')
+    except Exception as e:
+        messages.error(request, f'Error adding table: {str(e)}')
+    return redirect('tables_list', unique_id=unique_id)
+
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+@restaurant_access_required
+def delete_table(request, unique_id: int, table_id: int):
+    db.deleteTable(table_id)
+    return redirect('tables_list', unique_id=unique_id)

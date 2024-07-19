@@ -2,7 +2,7 @@ import psycopg2
 import psycopg2.extras
 from typing import List
 
-from .model import User, Restaurant, CustomerOrder, OrderItem, Order, MenuItem
+from .model import User, Restaurant, CustomerOrder, OrderItem, Order, MenuItem, Table
 
 from .auth_public import db, host, user, password
 
@@ -194,4 +194,39 @@ def addItemToOrder(orderItem: OrderItem):
     with connection.cursor() as cursor:
         cmd = "INSERT INTO OrderItem (customer_order_id, item_id, quantity) VALUES (%s, %s, %s)"
         data = (orderItem.order_id, orderItem.item_id, orderItem.quantity)
+        cursor.execute(cmd, data)
+
+def addTable(table: Table):
+    with connection.cursor() as cursor:
+        cmd = "INSERT INTO DiningTable (restaurant_id) VALUES (%s) RETURNING id"
+        data = (table.restaurant_id,)
+        cursor.execute(cmd, data)
+        table.id = cursor.fetchone()[0]
+    return table
+
+def getTablesByRestaurant(restaurant_id: int):
+    tables = []
+    with connection.cursor() as cursor:
+        cmd = "SELECT id, restaurant_id FROM DiningTable WHERE restaurant_id = %s"
+        data = (restaurant_id,)
+        cursor.execute(cmd, data)
+        rows = cursor.fetchall()
+        for row in rows:
+            tables.append(Table(id=row[0], restaurant_id=row[1]))
+    return tables
+
+def getTableByID(table_id: int):
+    with connection.cursor() as cursor:
+        cmd = "SELECT id, restaurant_id FROM DiningTable WHERE id = %s"
+        data = (table_id,)
+        cursor.execute(cmd, data)
+        row = cursor.fetchone()
+    if row:
+        return Table(id=row[0], restaurant_id=row[1])
+    return None
+
+def deleteTable(table_id: int):
+    with connection.cursor() as cursor:
+        cmd = "DELETE FROM DiningTable WHERE id = %s"
+        data = (table_id,)
         cursor.execute(cmd, data)
