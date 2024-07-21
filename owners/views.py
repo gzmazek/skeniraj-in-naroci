@@ -17,6 +17,10 @@ import json
 
 from owners.decorators import owner_required, restaurant_access_required
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 # Create your views here.
 
 @cache_control(no_cache=True, must_revalidate=True, no_store=True) # Prevents from browser caching page and hence rendering it when user is already logged out
@@ -88,48 +92,28 @@ def sign_out(request):
 
     return redirect('profile_rest')
 
-@cache_control(no_cache=True, must_revalidate=True, no_store=True)  # Prevents from browser caching page and hence rendering it when user is already logged out
-@restaurant_access_required
-def restaurant_dashboard(request, unique_id: int):
-    restaurant = db.getRestaurantByID(unique_id)
-    context = {
-        'restaurant': restaurant,
-    }
-    return render(request, 'owners/dashboard.html', context)
-
-@cache_control(no_cache=True, must_revalidate=True, no_store=True)
-@restaurant_access_required
-def restaurant_dashboard(request, unique_id: int):
-    restaurant = db.getRestaurantByID(unique_id)
-    context = {
-        'restaurant': restaurant,
-    }
-    return render(request, 'owners/dashboard.html', context)
-
+# Restaurant dashboard view
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 @restaurant_access_required
 def restaurant_dashboard(request, unique_id: int):
     restaurant = db.getRestaurantByID(unique_id)
     tables = db.getTablesByRestaurant(restaurant.id)
     for table in tables:
-        table.order = db.getOrderByTableID(table.id)  # Add this line if you want to check if there's an order for the table
-
+        table.order = db.getOrderByTableID(table.id)
     context = {
         'restaurant': restaurant,
         'tables': tables,
     }
     return render(request, 'owners/dashboard.html', context)
 
-import logging
-
-logger = logging.getLogger(__name__)
-
-@csrf_exempt  # Add this decorator to exempt the view from CSRF verification
-def update_table_position(request):
+@csrf_exempt
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+@restaurant_access_required
+def save_table_position(request, unique_id, table_id):
     if request.method == 'POST':
-        table_id = request.POST.get('table_id')
-        position_x = request.POST.get('position_x')
-        position_y = request.POST.get('position_y')
+        data = json.loads(request.body)
+        position_x = data.get('x', 0)
+        position_y = data.get('y', 0)
         logger.debug(f"Received table_id: {table_id}, position_x: {position_x}, position_y: {position_y}")
         try:
             db.updateTablePosition(int(table_id), int(position_x), int(position_y))
@@ -139,6 +123,7 @@ def update_table_position(request):
             return JsonResponse({'status': 'failed', 'error': str(e)})
     return JsonResponse({'status': 'failed'})
 
+
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 @restaurant_access_required
 def table_orders(request):
@@ -146,3 +131,60 @@ def table_orders(request):
     table = db.getTableByID(table_id)
     orders = db.getOrdersByTableID(table_id)  # Assuming you have this function
     return render(request, 'owners/table_orders.html', {'table': table, 'orders': orders})
+
+# Add table view
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+@restaurant_access_required
+def add_table(request, unique_id: int):
+    if request.method == 'POST':
+        restaurant = db.getRestaurantByID(unique_id)
+        table = mod.Table(restaurant_id=restaurant.id, position_x=0, position_y=0)
+        db.addTable(table)
+        return JsonResponse({'status': 'success', 'table_id': table.id})
+    return JsonResponse({'status': 'failed'})
+
+# Delete table view
+@csrf_exempt
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+@restaurant_access_required
+def delete_table(request, table_id: int):
+    if request.method == 'POST':
+        db.deleteTable(table_id)
+        return JsonResponse({'status': 'success'})
+    return JsonResponse({'status': 'failed'})
+
+# Update table position view
+@csrf_exempt
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+@restaurant_access_required
+def update_table_position(request, unique_id: int):
+    if request.method == 'POST':
+        table_id = request.POST.get('table_id')
+        position_x = request.POST.get('position_x')
+        position_y = request.POST.get('position_y')
+        try:
+            db.updateTablePosition(int(table_id), int(position_x), int(position_y))
+            return JsonResponse({'status': 'success'})
+        except Exception as e:
+            return JsonResponse({'status': 'failed', 'error': str(e)})
+    return JsonResponse({'status': 'failed'})
+
+# Table orders view
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+@restaurant_access_required
+def table_orders(request):
+    table_id = request.GET.get('table_id')
+    table = db.getTableByID(table_id)
+    orders = db.getOrdersByTableID(table_id)
+    return render(request, 'owners/table_orders.html', {'table': table, 'orders': orders})
+
+# Mark order finished view
+@csrf_exempt
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+@restaurant_access_required
+def mark_order_finished(request):
+    if request.method == 'POST':
+        order_id = request.POST.get('order_id')
+        db.markOrderAsFinished(order_id)
+        return JsonResponse({'status': 'success'})
+    return JsonResponse({'status': 'failed'})

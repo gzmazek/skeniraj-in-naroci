@@ -127,7 +127,7 @@
                         <!-- Removed share and export buttons -->
                     </div>
                 </div>
-                <div class="table-container">
+                <div class="table-container" id="tableContainer" data-restaurant-id="{{ restaurant.id }}">
                     {% for table in tables %}
                     <div class="table-item {% if table.order %}order{% endif %}" 
                         data-table-id="{{ table.id }}" 
@@ -138,82 +138,20 @@
                             <p>Order: {{ table.order.id }}</p>
                             <p>Status: {{ table.order.status }}</p>
                             <p>Total: {{ table.order.total_value }}</p>
+                            <button class="btn btn-sm btn-success mark-order-finished" data-order-id="{{ table.order.id }}">Finish Order</button>
                         </div>
                         {% endif %}
                     </div>
                     {% endfor %}
                 </div>
+                <button id="editModeToggle" class="btn btn-primary">Move Tables</button>
+                <button id="addTable" class="btn btn-secondary">Add Table</button>
             </main>
         </div>
     </div>
-    <button id="editModeToggle" class="btn btn-primary">Move Tables</button>
+    {% load static %}
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
-    <script>
-        function getCookie(name) {
-            let cookieValue = null;
-            if (document.cookie && document.cookie !== '') {
-                const cookies = document.cookie.split(';');
-                for (let i = 0; i < cookies.length; i++) {
-                    const cookie = cookies[i].trim();
-                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                        break;
-                    }
-                }
-            }
-            return cookieValue;
-        }
-
-        $(function() {
-            var editMode = false;
-            var csrftoken = getCookie('csrftoken');
-
-            $("#editModeToggle").click(function() {
-                editMode = !editMode;
-                if (editMode) {
-                    $(this).text("Save Layout");
-                    $(".table-item").addClass("edit-mode").draggable({
-                        stop: function(event, ui) {
-                            var tableId = $(this).data("table-id");
-                            var position = ui.position;
-                            console.log(`Updating position for table ${tableId}: (${position.left}, ${position.top})`);
-                            $.ajax({
-                                url: "{% url 'update_table_position' %}",
-                                method: "POST",
-                                data: {
-                                    'table_id': tableId,
-                                    'position_x': position.left,
-                                    'position_y': position.top,
-                                    'csrfmiddlewaretoken': csrftoken
-                                },
-                                success: function(response) {
-                                    console.log("Server response:", response);
-                                    if (response.status !== 'success') {
-                                        alert("Failed to update table position");
-                                    }
-                                },
-                                error: function(xhr, status, error) {
-                                    console.error("AJAX request failed:", status, error);
-                                    alert("Failed to update table position");
-                                }
-                            });
-                        }
-                    });
-                } else {
-                    $(this).text("Move Tables");
-                    $(".table-item").removeClass("edit-mode").draggable("destroy");
-                }
-            });
-
-            $(".table-item").click(function() {
-                if (!editMode) {
-                    var tableId = $(this).data("table-id");
-                    // Open modal or navigate to order details page for the clicked table
-                    window.location.href = "{% url 'table_orders' %}?table_id=" + tableId;
-                }
-            });
-        });
-    </script>
+    <script src="{% static 'owners/dashboard.js' %}"></script>
 </body>
 </html>
