@@ -11,6 +11,9 @@ from owners.forms import AddRestaurantForm
 
 import data.database as db
 import data.model as mod
+from django.views.decorators.csrf import csrf_exempt
+import json
+
 
 from owners.decorators import owner_required, restaurant_access_required
 
@@ -105,29 +108,41 @@ def restaurant_dashboard(request, unique_id: int):
 
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 @restaurant_access_required
-def tables_list(request, unique_id: int):
+def restaurant_dashboard(request, unique_id: int):
     restaurant = db.getRestaurantByID(unique_id)
     tables = db.getTablesByRestaurant(restaurant.id)
+    for table in tables:
+        table.order = db.getOrderByTableID(table.id)  # Add this line if you want to check if there's an order for the table
+
     context = {
         'restaurant': restaurant,
         'tables': tables,
     }
-    return render(request, 'owners/tables_list.html', context)
+    return render(request, 'owners/dashboard.html', context)
+
+import logging
+
+logger = logging.getLogger(__name__)
+
+@csrf_exempt  # Add this decorator to exempt the view from CSRF verification
+def update_table_position(request):
+    if request.method == 'POST':
+        table_id = request.POST.get('table_id')
+        position_x = request.POST.get('position_x')
+        position_y = request.POST.get('position_y')
+        logger.debug(f"Received table_id: {table_id}, position_x: {position_x}, position_y: {position_y}")
+        try:
+            db.updateTablePosition(int(table_id), int(position_x), int(position_y))
+            return JsonResponse({'status': 'success'})
+        except Exception as e:
+            logger.error(f"Error updating table position: {e}")
+            return JsonResponse({'status': 'failed', 'error': str(e)})
+    return JsonResponse({'status': 'failed'})
 
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 @restaurant_access_required
-def add_table(request, unique_id: int):
-    try:
-        restaurant = db.getRestaurantByID(unique_id)
-        table = mod.Table(restaurant_id=restaurant.id)
-        db.addTable(table)
-        messages.success(request, 'Table added successfully.')
-    except Exception as e:
-        messages.error(request, f'Error adding table: {str(e)}')
-    return redirect('tables_list', unique_id=unique_id)
-
-@cache_control(no_cache=True, must_revalidate=True, no_store=True)
-@restaurant_access_required
-def delete_table(request, unique_id: int, table_id: int):
-    db.deleteTable(table_id)
-    return redirect('tables_list', unique_id=unique_id)
+def table_orders(request):
+    table_id = request.GET.get('table_id')
+    table = db.getTableByID(table_id)
+    orders = db.getOrdersByTableID(table_id)  # Assuming you have this function
+    return render(request, 'owners/table_orders.html', {'table': table, 'orders': orders})
