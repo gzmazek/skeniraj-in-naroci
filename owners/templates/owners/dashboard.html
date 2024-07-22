@@ -13,11 +13,9 @@
     }
     .table-item {
         position: absolute;
-        width: 80px;
-        height: 80px;
+        width: 7vw;
+        height: 7vw;
         border-radius: 50%;
-        background-color: gray;
-        color: white;
         display: flex;
         justify-content: center;
         align-items: center;
@@ -25,15 +23,51 @@
         cursor: pointer;
         font-size: 0.8rem;
         padding: 5px;
+        color: white;
     }
-    .table-item.order {
+    .table-item.no-order {
+        background-color: gray;
+    }
+    .table-item.not-prepared {
+        background-color: orange;
+    }
+    .table-item.prepared {
         background-color: green;
     }
-    .table-item.edit-mode {
-        cursor: move;
+    .popup {
+        display: none; /* Hidden by default */
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0,0,0,0.5);
+    }
+    .popup-content {
+        background-color: #fff;
+        margin: 15% auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 80%;
+        max-width: 500px;
+    }
+    .close-btn {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+    }
+    .close-btn:hover,
+    .close-btn:focus {
+        color: black;
+        text-decoration: none;
+        cursor: pointer;
     }
 </style>
 {% endblock %}
+
 
 {% block content %}
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
@@ -41,26 +75,72 @@
 </div>
 <div class="table-container" id="tableContainer" data-restaurant-id="{{ restaurant.id }}">
     {% for table in tables %}
-    <div class="table-item {% if table.order %}order{% endif %}" 
+    <div class="table-item 
+        {% if table.order %}
+            {% if table.order.is_prepared %}prepared{% else %}not-prepared{% endif %}
+        {% else %}
+            no-order
+        {% endif %}" 
         data-table-id="{{ table.id }}" 
         style="left: {{ table.position_x }}px; top: {{ table.position_y }}px;">
         <span>{{ table.id }}</span>
-        {% if table.order %}
-        <div class="order-details">
-            <p>Order: {{ table.order.id }}</p>
-            <p>Status: {{ table.order.status }}</p>
-            <p>Total: {{ table.order.total_value }}</p>
-            <button class="btn btn-sm btn-success mark-order-finished" data-order-id="{{ table.order.id }}">Finish Order</button>
-        </div>
-        {% endif %}
     </div>
     {% endfor %}
 </div>
 <button id="editModeToggle" class="btn btn-primary">Move Tables</button>
 <button id="addTable" class="btn btn-secondary">Add Table</button>
+
+<!-- Popup window structure -->
+<div id="popup" class="popup">
+    <div class="popup-content">
+        <span class="close-btn" id="closePopup">&times;</span>
+        <div id="popupContent"></div>
+    </div>
+</div>
 {% endblock %}
+
 
 {% block extra_scripts %}
 {% load static %}
 <script src="{% static 'owners/dashboard.js' %}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const tableItems = document.querySelectorAll('.table-item');
+    const popup = document.getElementById('popup');
+    const closePopup = document.getElementById('closePopup');
+    const popupContent = document.getElementById('popupContent');
+    const editModeToggle = document.getElementById('editModeToggle');
+    let isEditMode = false;
+
+    editModeToggle.addEventListener('click', function() {
+        isEditMode = !isEditMode;
+        if (isEditMode) {
+            editModeToggle.textContent = 'Exit Edit Mode';
+        } else {
+            editModeToggle.textContent = 'Move Tables';
+        }
+    });
+
+    tableItems.forEach(item => {
+        item.addEventListener('click', function() {
+            if (!isEditMode) {
+                const tableId = this.dataset.tableId;
+                popupContent.innerHTML = `<p>Details for Table ID: ${tableId}</p>`;
+                popup.style.display = 'block';
+            }
+        });
+    });
+
+    closePopup.addEventListener('click', function() {
+        popup.style.display = 'none';
+    });
+
+    window.addEventListener('click', function(event) {
+        if (event.target == popup) {
+            popup.style.display = 'none';
+        }
+    });
+});
+</script>
 {% endblock %}
+

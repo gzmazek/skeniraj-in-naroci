@@ -243,6 +243,53 @@ def updateTablePosition(table_id: int, position_x: int, position_y: int):
         data = (position_x, position_y, table_id)
         cursor.execute(cmd, data)
 
+def getOrderByTableID_ex(table_id: int):
+    """
+    Returns the current order for a given table if it exists, including items.
+    """
+    with connection.cursor() as cursor:
+        cmd = """
+        SELECT 
+            co.id, co.status, co.date, co.table_id, co.user_id
+        FROM 
+            CustomerOrder co
+        WHERE 
+            co.table_id = %s AND co.status != 'completed'
+        ORDER BY 
+            co.date DESC
+        LIMIT 1
+        """
+        data = (table_id,)
+        cursor.execute(cmd, data)
+        order = cursor.fetchone()
+    
+    if order:
+        order_id = order[0]
+        items = []
+        with connection.cursor() as cursor:
+            cmd = """
+            SELECT 
+                oi.id, oi.name, oi.is_prepared
+            FROM 
+                OrderItem oi
+            WHERE 
+                oi.order_id = %s
+            """
+            cursor.execute(cmd, (order_id,))
+            items = cursor.fetchall()
+        
+        return {
+            'id': order[0],
+            'status': order[1],
+            'date': order[2],
+            'table_id': order[3],
+            'user_id': order[4],
+            'items': [{'id': item[0], 'name': item[1], 'is_prepared': item[2]} for item in items]
+        }
+    return None
+
+
+
 def getOrderByTableID(table_id: int):
     """
     Returns the current order for a given table if it exists

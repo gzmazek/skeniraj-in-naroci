@@ -50,81 +50,77 @@
     </header>
     <div class="d-flex">
         <div class="sidebar col-md-3 col-lg-2 p-0 bg-body-tertiary">
-            <div class="offcanvas-md offcanvas-end bg-body-tertiary" tabindex="-1" id="sidebarMenu" aria-labelledby="sidebarMenuLabel">
-                <div class="offcanvas-body flex-column p-0 pt-5 pb-3 overflow-y-auto full-height justify-content-between">
-                    <ul class="nav flex-column">
-
-                        <li class="nav-item">
-                            <a class="nav-link d-flex align-items-center gap-2 {% active request 'restaurant_dashboard' %}" href="{% url 'restaurant_dashboard' 1 %}">
-                                <svg class="bi"><use xlink:href="#cart"/></svg>
-                                Dashboard
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link d-flex align-items-center gap-2 {% active request 'customers_view' %}" href="{% url 'customers_view' %}">
-                                <svg class="bi"><use xlink:href="#cart"/></svg>
-                                Customers
-                            </a>
-                        </li>
-
-
-                        <li class="nav-item">
-                            <a class="nav-link d-flex align-items-center gap-2" href="#">
-                                <svg class="bi"><use xlink:href="#file-earmark"/></svg>
-                                Orders
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link d-flex align-items-center gap-2" href="#">
-                                <svg class="bi"><use xlink:href="#cart"/></svg>
-                                Products
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link d-flex align-items-center gap-2" href="#">
-                                <svg class="bi"><use xlink:href="#people"/></svg>
-                                Customers
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link d-flex align-items-center gap-2" href="#">
-                                <svg class="bi"><use xlink:href="#graph-up"/></svg>
-                                Reports
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link d-flex align-items-center gap-2" href="#">
-                                <svg class="bi"><use xlink:href="#puzzle"/></svg>
-                                Integrations
-                            </a>
-                        </li>
-                    </ul>
-                    <ul class="nav flex-column">
-                        <hr class="my-3">
-                        <li class="nav-item">
-                            <a class="nav-link d-flex align-items-center gap-2" href="#">
-                                <svg class="bi"><use xlink:href="#gear-wide-connected"/></svg>
-                                Settings
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link d-flex align-items-center gap-2" href="#">
-                                <svg class="bi"><use xlink:href="#door-closed"/></svg>
-                                Back
-                            </a>
-                        </li>
-                    </ul>
-                </div>
+            <div class="offcanvas-body flex-column p-0 overflow-y-auto">
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link d-flex align-items-center gap-2 {% active request 'restaurant_dashboard' %}" href="{% url 'restaurant_dashboard' 1 %}">
+                            <svg class="bi"><use xlink:href="#cart"/></svg>
+                            Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link d-flex align-items-center gap-2 {% active request 'customers_view' %}" href="{% url 'customers_view' %}">
+                            <svg class="bi"><use xlink:href="#cart"/></svg>
+                            Customers
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link d-flex align-items-center gap-2" href="#">
+                            <svg class="bi"><use xlink:href="#file-earmark"/></svg>
+                            Orders
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link d-flex align-items-center gap-2" href="#">
+                            <svg class="bi"><use xlink:href="#cart"/></svg>
+                            Products
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link d-flex align-items-center gap-2" href="#">
+                            <svg class="bi"><use xlink:href="#people"/></svg>
+                            Customers
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link d-flex align-items-center gap-2" href="#">
+                            <svg class="bi"><use xlink:href="#graph-up"/></svg>
+                            Reports
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link d-flex align-items-center gap-2" href="#">
+                            <svg class="bi"><use xlink:href="#puzzle"/></svg>
+                            Integrations
+                        </a>
+                    </li>
+                </ul>
+                <hr class="my-3">
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link d-flex align-items-center gap-2" href="#">
+                            <svg class="bi"><use xlink:href="#gear-wide-connected"/></svg>
+                            Settings
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link d-flex align-items-center gap-2" href="#">
+                            <svg class="bi"><use xlink:href="#door-closed"/></svg>
+                            Back
+                        </a>
+                    </li>
+                </ul>
             </div>
         </div>
-        <div class="container-fluid">
-            <div class="row">
-                <main class="col-md-9 col-lg-12 px-md-4">
+        <div class="container-fluid p-0">
+            <div class="row g-0">
+                <main class="col-md-9 col-lg-10 p-0 mt-3" style="margin-left: 3rem; margin-right: 3rem;">
                     {% block content %}{% endblock %}
                 </main>
             </div>
         </div>
     </div>
+    
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>

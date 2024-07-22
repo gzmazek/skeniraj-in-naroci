@@ -189,3 +189,22 @@ from django.shortcuts import render
 def customers_view(request):
     context = {}
     return render(request, 'owners/customers.html', context)
+
+@csrf_exempt
+def finish_order(request, order_id):
+    if request.method == 'POST':
+        order = order.objects.get(id=order_id)
+        order.status = 'finished'
+        order.save()
+        return JsonResponse({'status': 'success'})
+
+
+from django.http import JsonResponse
+
+def get_order_details(request, table_id, unique_id=None):
+    order_details = db.getOrderByTableID(table_id)
+    if order_details:
+        print(order_details)  # Add this line to debug
+        return JsonResponse(order_details.to_dict(), safe=False)
+    else:
+        return JsonResponse({'error': 'No active order found for this table'}, status=404)
