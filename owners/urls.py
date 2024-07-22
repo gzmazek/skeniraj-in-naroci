@@ -11,5 +11,6 @@ urlpatterns = [
     path('<int:unique_id>/delete_table/<int:table_id>/', views.delete_table, name='delete_table'),
     path('update_table_position/', views.update_table_position, name='update_table_position'),
     path('table_orders/', views.table_orders, name='table_orders'),
-    path('mark_order_finished/<int:order_id>/', views.mark_order_finished, name='mark_order_finished'),  # Add this line
+    path('mark_order_finished/<int:order_id>/', views.mark_order_finished, name='mark_order_finished'),
+    path('customers/', views.customers_view, name='customers_view'), 
 ]

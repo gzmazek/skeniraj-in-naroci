@@ -132,7 +132,6 @@ def table_orders(request):
     orders = db.getOrdersByTableID(table_id)  # Assuming you have this function
     return render(request, 'owners/table_orders.html', {'table': table, 'orders': orders})
 
-# Add table view
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 @restaurant_access_required
 def add_table(request, unique_id: int):
@@ -143,7 +142,6 @@ def add_table(request, unique_id: int):
         return JsonResponse({'status': 'success', 'table_id': table.id})
     return JsonResponse({'status': 'failed'})
 
-# Delete table view
 @csrf_exempt
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 @restaurant_access_required
@@ -153,7 +151,6 @@ def delete_table(request, table_id: int):
         return JsonResponse({'status': 'success'})
     return JsonResponse({'status': 'failed'})
 
-# Update table position view
 @csrf_exempt
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 @restaurant_access_required
@@ -169,7 +166,6 @@ def update_table_position(request, unique_id: int):
             return JsonResponse({'status': 'failed', 'error': str(e)})
     return JsonResponse({'status': 'failed'})
 
-# Table orders view
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 @restaurant_access_required
 def table_orders(request):
@@ -178,7 +174,6 @@ def table_orders(request):
     orders = db.getOrdersByTableID(table_id)
     return render(request, 'owners/table_orders.html', {'table': table, 'orders': orders})
 
-# Mark order finished view
 @csrf_exempt
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 @restaurant_access_required
@@ -188,3 +183,9 @@ def mark_order_finished(request):
         db.markOrderAsFinished(order_id)
         return JsonResponse({'status': 'success'})
     return JsonResponse({'status': 'failed'})
+
+from django.shortcuts import render
+
+def customers_view(request):
+    context = {}
+    return render(request, 'owners/customers.html', context)
