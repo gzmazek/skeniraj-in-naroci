@@ -28,6 +28,8 @@ class Restaurant:
 class Table:
     id: int = field(default=None)
     restaurant_id: int = field(default=None)
+    position_x: int = field(default=0)
+    position_y: int = field(default=0)
 
 @dataclass_json
 @dataclass
@@ -58,8 +60,22 @@ class OrderItem:
     order_id: int = field(default=None)
     item_id: int = field(default=None)
     quantity: int = field(default=None)
+    status: str = field(default='pending') 
 
 # dataclass representation of other classes used in this project
+
+@dataclass_json
+@dataclass
+class Kitchen:
+    id: int = field(default=None)
+    restaurant_id: int = field(default=None)
+    name: str = field(default=None)
+
+@dataclass_json
+@dataclass
+class KitchenItem:
+    kitchen_id: int = field(default=None)
+    item_id: int = field(default=None)
 
 @dataclass_json
 @dataclass

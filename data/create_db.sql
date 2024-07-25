@@ -1,3 +1,4 @@
+-- Active: 1709207401209@@baza.fmf.uni-lj.si@5432@sem2024_vitol
 CREATE TABLE AppUser (
     id SERIAL PRIMARY KEY,
     email VARCHAR(255) UNIQUE NOT NULL,

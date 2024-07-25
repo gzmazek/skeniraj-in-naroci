@@ -198,8 +198,11 @@ def addItemToOrder(orderItem: OrderItem):
 
 def addTable(table: Table):
     with connection.cursor() as cursor:
-        cmd = "INSERT INTO DiningTable (restaurant_id) VALUES (%s) RETURNING id"
-        data = (table.restaurant_id,)
+        if table.position_x is None or table.position_y is None:
+            table.position_x = 1  
+            table.position_y = 1  
+        cmd = "INSERT INTO DiningTable (restaurant_id, position_x, position_y) VALUES (%s, %s, %s) RETURNING id"
+        data = (table.restaurant_id, table.position_x, table.position_y)
         cursor.execute(cmd, data)
         table.id = cursor.fetchone()[0]
     return table
@@ -207,22 +210,22 @@ def addTable(table: Table):
 def getTablesByRestaurant(restaurant_id: int):
     tables = []
     with connection.cursor() as cursor:
-        cmd = "SELECT id, restaurant_id FROM DiningTable WHERE restaurant_id = %s"
+        cmd = "SELECT id, restaurant_id, position_x, position_y FROM DiningTable WHERE restaurant_id = %s"
         data = (restaurant_id,)
         cursor.execute(cmd, data)
         rows = cursor.fetchall()
         for row in rows:
-            tables.append(Table(id=row[0], restaurant_id=row[1]))
+            tables.append(Table(id=row[0], restaurant_id=row[1], position_x=row[2], position_y=row[3]))
     return tables
 
 def getTableByID(table_id: int):
     with connection.cursor() as cursor:
-        cmd = "SELECT id, restaurant_id FROM DiningTable WHERE id = %s"
+        cmd = "SELECT id, restaurant_id, position_x, position_y FROM DiningTable WHERE id = %s"
         data = (table_id,)
         cursor.execute(cmd, data)
         row = cursor.fetchone()
     if row:
-        return Table(id=row[0], restaurant_id=row[1])
+        return Table(id=row[0], restaurant_id=row[1], position_x=row[2], position_y=row[3])
     return None
 
 def deleteTable(table_id: int):
@@ -230,3 +233,89 @@ def deleteTable(table_id: int):
         cmd = "DELETE FROM DiningTable WHERE id = %s"
         data = (table_id,)
         cursor.execute(cmd, data)
+
+def updateTablePosition(table_id: int, position_x: int, position_y: int):
+    """
+    Updates the position of a table in the database.
+    """
+    with connection.cursor() as cursor:
+        cmd = "UPDATE DiningTable SET position_x = %s, position_y = %s WHERE id = %s"
+        data = (position_x, position_y, table_id)
+        cursor.execute(cmd, data)
+
+def getOrderByTableID_ex(table_id: int):
+    """
+    Returns the current order for a given table if it exists, including items.
+    """
+    with connection.cursor() as cursor:
+        cmd = """
+        SELECT 
+            co.id, co.status, co.date, co.table_id, co.user_id
+        FROM 
+            CustomerOrder co
+        WHERE 
+            co.table_id = %s AND co.status != 'completed'
+        ORDER BY 
+            co.date DESC
+        LIMIT 1
+        """
+        data = (table_id,)
+        cursor.execute(cmd, data)
+        order = cursor.fetchone()
+    
+    if order:
+        order_id = order[0]
+        items = []
+        with connection.cursor() as cursor:
+            cmd = """
+            SELECT 
+                oi.id, oi.name, oi.is_prepared
+            FROM 
+                OrderItem oi
+            WHERE 
+                oi.order_id = %s
+            """
+            cursor.execute(cmd, (order_id,))
+            items = cursor.fetchall()
+        
+        return {
+            'id': order[0],
+            'status': order[1],
+            'date': order[2],
+            'table_id': order[3],
+            'user_id': order[4],
+            'items': [{'id': item[0], 'name': item[1], 'is_prepared': item[2]} for item in items]
+        }
+    return None
+
+
+
+def getOrderByTableID(table_id: int):
+    """
+    Returns the current order for a given table if it exists
+    """
+    with connection.cursor() as cursor:
+        cmd = """
+        SELECT 
+            co.id, co.status, co.date, co.table_id, co.user_id
+        FROM 
+            CustomerOrder co
+        WHERE 
+            co.table_id = %s AND co.status != 'completed'
+        ORDER BY 
+            co.date DESC
+        LIMIT 1
+        """
+        data = (table_id,)
+        cursor.execute(cmd, data)
+        order = cursor.fetchone()
+    
+    if order:
+        return CustomerOrder(
+            id=order[0],
+            status=order[1],
+            date=order[2],
+            table_id=order[3],
+            user_id=order[4]
+        )
+    return None
