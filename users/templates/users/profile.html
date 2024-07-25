@@ -100,6 +100,10 @@
         -webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 1) 25%, rgba(0, 0, 0, 0.4) 100%);
         mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 1) 25%, rgba(0, 0, 0, 0.4) 100%);
       }
+
+      .header-padding{
+        padding: 11px;
+      }
     </style>
 
     
@@ -160,9 +164,10 @@
 
   <body class="d-flex align-items-center flex-column">
     <div class="d-flex w-100 text-center text-bg-dark align-items-center">
-      <div class="cover-container w-100 p-3 mx-auto">
-        <a href="{% url 'home' %}" class="float-start mb-0 h3 text-decoration-none">Scan&Order</a>
-          <nav class="nav nav-masthead justify-content-center float-end">
+      <div class="cover-container w-100 header-padding mx-auto d-flex align-items-center justify-content-between">
+        <a href="{% url 'home' %}" class="mb-0 h3 text-decoration-none align-items-center">Scan&Order</a>
+        <a href="{% url 'scan_qr' %}" class="btn btn-lg btn-light fw-bold border-white bg-white border-0">Scan QR code</a>
+          <nav class="nav nav-masthead justify-content-center">
               <a class="nav-link d-flex align-items-center gap-2 px-2" href="#">
                 <svg class="bi"><use xlink:href="#gear-wide-connected"/></svg>
               </a>

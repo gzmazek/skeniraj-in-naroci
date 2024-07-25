@@ -5,7 +5,7 @@ CREATE TABLE AppUser (
     surname VARCHAR(255) NOT NULL,
     password VARCHAR(255) NOT NULL
 );
-activete envirn
+
 CREATE TABLE Restaurant (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,

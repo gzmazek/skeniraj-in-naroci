@@ -102,18 +102,14 @@
   </head>
   <body class="d-flex align-items-center flex-column header-shadow">
     <div class="d-flex w-100 text-center text-bg-dark align-items-center">
-      <div class="cover-container flex-column w-100 p-3 mx-auto">
-        <header class="mb-2">
-          <div>
-          <h3 class="float-md-start mb-0">Scan&Order</h3>
-          <nav class="nav nav-masthead justify-content-center float-md-end">
-              <a class="nav-link fw-bold py-1 px-0" aria-current="page" href="{% url 'home' %}">Home</a>
-              <a class="nav-link fw-bold py-1 px-0" href="#">About</a>
-              <a class="nav-link fw-bold py-1 px-0" href="{% url 'sign-in' %}">Sign in</a>
-              <a class="nav-link fw-bold py-1 px-0 active" href="{% url 'register' %}">Register</a>
-          </nav>
-          </div>
-        </header>
+      <div class="cover-container w-100 p-3 mx-auto d-flex align-items-center justify-content-between">
+        <a href="{% url 'home' %}" class="mb-0 h3 text-decoration-none align-items-center">Scan&Order</a>
+        <nav class="nav nav-masthead justify-content-center float-md-end">
+          <a class="nav-link fw-bold py-1 px-0" aria-current="page" href="{% url 'home' %}">Home</a>
+          <a class="nav-link fw-bold py-1 px-0" href="#">About</a>
+          <a class="nav-link fw-bold py-1 px-0" href="{% url 'sign-in' %}">Sign in</a>
+          <a class="nav-link fw-bold py-1 px-0 active" href="{% url 'register' %}">Register</a>
+        </nav>
       </div>
     </div>
 
