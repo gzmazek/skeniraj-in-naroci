@@ -98,8 +98,8 @@
                 <hr class="my-3">
                 <ul class="nav flex-column">
                     <li class="nav-item">
-                        <a class="nav-link d-flex align-items-center gap-2" href="#">
-                            <svg class="bi"><use xlink:href="#gear-wide-connected"/></svg>
+                        <a class="nav-link d-flex align-items-center gap-2 {% active request 'settings' %}" href="{% url 'settings' restaurant.id%}">
+                            <svg class="bi"><use xlink:href="#cart"/></svg>
                             Settings
                         </a>
                     </li>

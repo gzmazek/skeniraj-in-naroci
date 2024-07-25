@@ -123,7 +123,6 @@ def save_table_position(request, unique_id, table_id):
             return JsonResponse({'status': 'failed', 'error': str(e)})
     return JsonResponse({'status': 'failed'})
 
-
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 @restaurant_access_required
 def table_orders(request):
@@ -208,3 +207,19 @@ def get_order_details(request, table_id, unique_id=None):
         return JsonResponse(order_details.to_dict(), safe=False)
     else:
         return JsonResponse({'error': 'No active order found for this table'}, status=404)
+
+from django.shortcuts import render, redirect
+from data.model import Restaurant
+from django.http import Http404
+
+def settings_view(request, restaurant_id):
+    try:
+        restaurant = Restaurant.objects.get(id=restaurant_id)
+    except Restaurant.DoesNotExist:
+        raise Http404("Restaurant does not exist")
+
+    context = {
+        'restaurant': restaurant,
+    }
+    return render(request, 'owners/settings.html', context)
+

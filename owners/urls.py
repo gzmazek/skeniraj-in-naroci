@@ -15,4 +15,5 @@ urlpatterns = [
     path('customers/', views.customers_view, name='customers_view'), 
     path('<int:unique_id>/get-order-details/<int:table_id>/', views.get_order_details, name='get_order_details'),
     path('finish-order/<int:order_id>/', views.finish_order, name='finish_order'),
+    path('<int:restaurant_id>/settings/', views.settings_view, name='settings'),
 ]

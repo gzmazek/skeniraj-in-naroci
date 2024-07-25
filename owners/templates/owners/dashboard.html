@@ -68,7 +68,6 @@
 </style>
 {% endblock %}
 
-
 {% block content %}
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
     <h1 class="h2">Dashboard</h1>
@@ -90,7 +89,6 @@
 <button id="editModeToggle" class="btn btn-primary">Move Tables</button>
 <button id="addTable" class="btn btn-secondary">Add Table</button>
 
-<!-- Popup window structure -->
 <div id="popup" class="popup">
     <div class="popup-content">
         <span class="close-btn" id="closePopup">&times;</span>
@@ -99,48 +97,7 @@
 </div>
 {% endblock %}
 
-
 {% block extra_scripts %}
 {% load static %}
 <script src="{% static 'owners/dashboard.js' %}"></script>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const tableItems = document.querySelectorAll('.table-item');
-    const popup = document.getElementById('popup');
-    const closePopup = document.getElementById('closePopup');
-    const popupContent = document.getElementById('popupContent');
-    const editModeToggle = document.getElementById('editModeToggle');
-    let isEditMode = false;
-
-    editModeToggle.addEventListener('click', function() {
-        isEditMode = !isEditMode;
-        if (isEditMode) {
-            editModeToggle.textContent = 'Exit Edit Mode';
-        } else {
-            editModeToggle.textContent = 'Move Tables';
-        }
-    });
-
-    tableItems.forEach(item => {
-        item.addEventListener('click', function() {
-            if (!isEditMode) {
-                const tableId = this.dataset.tableId;
-                popupContent.innerHTML = `<p>Details for Table ID: ${tableId}</p>`;
-                popup.style.display = 'block';
-            }
-        });
-    });
-
-    closePopup.addEventListener('click', function() {
-        popup.style.display = 'none';
-    });
-
-    window.addEventListener('click', function(event) {
-        if (event.target == popup) {
-            popup.style.display = 'none';
-        }
-    });
-});
-</script>
 {% endblock %}
-

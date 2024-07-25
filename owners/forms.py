@@ -9,3 +9,8 @@ class AddRestaurantForm(forms.Form):
 class TableForm(forms.Form):
     restaurant_id = forms.IntegerField(widget=forms.HiddenInput(), required=True)
     
+class AddKitchenForm(forms.Form):
+    name = forms.CharField(max_length=150)
+
+class AddItemForm(forms.Form):
+    item = forms.CharField(max_length=150)
