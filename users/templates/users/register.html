@@ -157,11 +157,13 @@
       </form>
       <!-- General error messages (e.g., passwords do not match) -->
       {% if messages %}
-        <ul class="mt-3">
+      <ul class="text-danger d-flex align-items-center alert">
           {% for message in messages %}
-            <li>{{ message }}</li>
+              <li>
+                  {{ message }}
+              </li>
           {% endfor %}
-        </ul>
+      </ul>
       {% endif %}
 
     </main>

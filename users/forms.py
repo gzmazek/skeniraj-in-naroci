@@ -12,3 +12,8 @@ class SignInForm(forms.Form):
     email = forms.CharField(max_length=150)
     password = forms.CharField(widget=forms.PasswordInput)
     remember_me = forms.BooleanField(required=False)
+
+class ChangePasswordForm(forms.Form):
+    oldPass = forms.CharField(widget=forms.PasswordInput)
+    newPass = forms.CharField(widget=forms.PasswordInput)
+    newPassRep = forms.CharField(widget=forms.PasswordInput)

@@ -37,6 +37,45 @@ def getUserByEmail(email: str):
         user = User(user[0],user[1],user[2],user[3],user[4])
         return user
     
+def getUserByID(user_id: int):
+    """
+    Returns user with given ID if it exists
+    """
+    user = None
+    with connection.cursor() as cursor:
+        cmd = "SELECT * FROM AppUser WHERE id = %s"
+        data = (user_id,)
+        cursor.execute(cmd, data)
+        user = cursor.fetchone()
+
+    if user is None:
+        return None
+    else:
+        user = User(user[0],user[1],user[2],user[3],user[4])
+        return user
+    
+def changeUserPassword(user_id: int, new_pass: str):
+    """
+    Changes the password of given user and returns it.
+    """
+    user = None
+    with connection.cursor() as cursor:
+        cmd = """
+        UPDATE AppUser
+        SET password = %s
+        WHERE id = %s
+        RETURNING *;
+        """
+        data = (new_pass, user_id)
+        cursor.execute(cmd, data)
+        user = cursor.fetchone()
+
+    if user is None:
+        return None
+    else:
+        user = User(user[0],user[1],user[2],user[3],user[4])
+        return user
+    
 def getRestaurantsOfOwner(user_id: int):
     """
     Returns the list of all restaurants owned by some user with user_id
@@ -121,7 +160,38 @@ def getUserOrders(user_id: int):
             orders.append(order)
     
     return orders
-    
+
+def getUserPopularRestaurants(user_id: int):
+    """
+    Gets restaurants in descending order based on how many times user has ordered from it.
+    """
+    restaurants = []
+    with connection.cursor() as cursor:
+        cmd = """ 
+        SELECT
+            r.id,
+            r.name,
+            r.location,
+            r.owner_id,
+            COUNT(co.id) AS order_count
+        FROM
+            CustomerOrder co
+            JOIN DiningTable dt ON co.table_id = dt.id
+            JOIN Restaurant r ON dt.restaurant_id = r.id
+        WHERE
+            co.user_id = %s
+        GROUP BY
+            r.id, r.name, r.location, r.owner_id
+        ORDER BY
+            order_count DESC;"""
+        data = (user_id,)
+        cursor.execute(cmd, data)
+        data = cursor.fetchall()
+        for d in data:
+            restaurants.append(Restaurant(id=d[0], name=d[1], location=d[2], owner_id=d[3]))
+
+    return restaurants
+
 def getRestaurantFromTableID(table_id: int):
     """
     Gets the restaurant that given table belongs to if such a table actually exists

@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from .forms import RegistrationForm, SignInForm
+from .forms import RegistrationForm, SignInForm, ChangePasswordForm
 import hashlib
 from django.contrib import messages
 from django.views.decorators.cache import cache_control
@@ -111,12 +111,48 @@ def sign_in(request):
 def profile(request):
     user_id = request.session['user_id']
     orders = db.getUserOrders(user_id)
+    popularRestaurants = db.getUserPopularRestaurants(user_id)
+    
+    popularRestaurants_json = [rest.to_json(ensure_ascii=False) for rest in popularRestaurants]
     orders_json = [order.to_json(ensure_ascii=False) for order in orders]
 
     # Parse each JSON string into a JSON object
     orders = [json.loads(order) for order in orders_json]
+    popularRestaurants = [json.loads(rest) for rest in popularRestaurants_json]
     
-    return render(request, 'users/profile.html', {'orders': orders})
+    return render(request, 'users/profile.html', {'orders': orders, 'popularRestaurants': popularRestaurants})
+
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+@user_sign_in_required
+def settings(request):
+    if request.method == 'POST':
+        user_id = request.session['user_id']
+        form = ChangePasswordForm(request.POST)
+        if form.is_valid():
+            oldPass = form.cleaned_data['oldPass']
+            newPass = form.cleaned_data['newPass']
+            newPassRep = form.cleaned_data['newPassRep']
+
+            hashed_password = hashlib.sha256(oldPass.encode()).hexdigest()
+            user =  db.getUserByID(user_id) # gets user from database
+
+            if user.password != hashed_password: 
+                # old password is incorrect
+                messages.error(request, 'Password is incorrect')
+                return render(request, 'users/settings.html', {'form': form})
+            
+            if newPass != newPassRep: 
+                # new password and repeated password are not equal
+                messages.error(request, 'New password and repeated new password are not equal')
+                return render(request, 'users/settings.html', {'form': form})
+            
+            hashed_password = hashlib.sha256(newPass.encode()).hexdigest()
+            user = db.changeUserPassword(user_id, hashed_password)
+            
+            return redirect('settings')    
+    else: # method GET
+        form = ChangePasswordForm()
+    return render(request, 'users/settings.html', {'form': form})
 
 @user_sign_in_required
 def order(request, table_id: int):

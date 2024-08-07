@@ -1,15 +1,26 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const recentOrdersContent = document.getElementById('recentOrdersContent');
+    const mainContent = document.getElementById('content');
 
     function formatDate(rawDate) {
         const date = new Date(rawDate * 1000);
         return `${date.toLocaleString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}, ${date.toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })}`;
     }
-
     let content = `
+        <h3 class="my-4">Popular restaurants</h1>
+        <div class="row">
+        ${popularRestaurants.slice(0,8).map((rest, restaurantIndex) => `
+            <div class="col-xl-3 col-lg-4 col-md-6 col-sm-12 py-2 px-2">
+            <div class="border rounded-3 p-3 h-100 popularRestaurant" data-value="${restaurantIndex}">
+                <h5>${rest.name}</h4>
+                <p class="mb-0">Address: ${rest.location}</p>
+            </div>
+            </div>
+        `).join('')}
+        </div>
+
         <h3 class="my-4">Recent Orders</h1>
         <div class="row">
-        ${orders.map((order, orderIndex) => `
+        ${orders.slice(0,8).map((order, orderIndex) => `
             <div class="col-xl-3 col-lg-4 col-md-6 col-sm-12 py-2 px-2">
             <div class="border rounded-3 p-3 h-100 orderTicket" data-value="${orderIndex}">
                 <h5>Order from ${order.restaurant}</h4>
@@ -65,7 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
     `;
 
-    recentOrdersContent.innerHTML = content;
+    mainContent.innerHTML = content;
 
     const addRestaurantBtns = document.querySelectorAll('.orderTicket');
     const popupTicket = document.getElementById('popupTicket');

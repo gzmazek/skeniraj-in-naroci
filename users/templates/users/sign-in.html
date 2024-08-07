@@ -105,7 +105,7 @@
   </head>
 <body class="d-flex align-items-center flex-column header-shadow">
   <div class="position-fixed bottom-0 end-0 mb-3 me-3 bd-mode-toggle">
-    <a class="btn btn-primary py-2 d-flex align-items-center"
+    <a class="btn btn-bd-primary py-2 d-flex align-items-center"
             id="bd-theme"
             href="{% url 'sign-in_rest' %}">
             Sign-in for restaurants
@@ -146,12 +146,14 @@
     <button class="btn btn-primary w-100 py-2" type="submit">Sign in</button>
   </form>
   <!-- General error messages -->
-  {% if form.non_field_errors %}
-  <div class="text-danger d-flex align-items-center">
-    <ul class="mb-0 mt-3">
-      {{ form.non_field_errors }}
-    </ul>
-  </div>
+  {% if messages %}
+  <ul class="text-danger d-flex align-items-center alert">
+      {% for message in messages %}
+          <li>
+              {{ message }}
+          </li>
+      {% endfor %}
+  </ul>
   {% endif %}
 
 </main>

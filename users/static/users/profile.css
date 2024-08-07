@@ -52,6 +52,14 @@
   box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
 }
 
+.popularRestaurant{
+  transition: box-shadow 0.3s ease;
+}
+
+.popularRestaurant:hover{
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
+}
+
 /*
  * Header
  */
