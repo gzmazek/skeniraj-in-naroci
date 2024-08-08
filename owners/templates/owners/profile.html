@@ -184,16 +184,16 @@
 </main>
 
 <div id="popupForm" class="popup">
-  <div class="popup-content">
+  <div class="popup-content rounded-3">
       <span class="close">&times;</span>
       <h2>Add New Restaurant</h2>
       <form id="restaurantForm", method="post">
         {% csrf_token %}
-          <label for="name">Restaurant Name:</label><br>
-          <input type="text" id="name" name="name" required><br>
-          <label for="address">Address:</label><br>
-          <input type="text" id="address" name="address" required><br><br>
-          <button type="submit">Add Restaurant</button>
+          <label for="name">Restaurant Name:</label>
+          <input class="form-control" type="text" id="name" name="name" required>
+          <label for="address">Address:</label>
+          <input class="form-control" type="text" id="address" name="address" required><br>
+          <button class="btn btn-bd-primary" type="submit">Add Restaurant</button>
       </form>
   </div>
 </div>

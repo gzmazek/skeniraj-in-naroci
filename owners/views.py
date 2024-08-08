@@ -144,10 +144,13 @@ def add_table(request, unique_id: int):
 @csrf_exempt
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 @restaurant_access_required
-def delete_table(request, table_id: int):
+def delete_table(request, restaurant_id: int, table_id: int):
     if request.method == 'POST':
-        db.deleteTable(table_id)
-        return JsonResponse({'status': 'success'})
+        table = db.getTableByID(table_id)
+        # check if table belongs to this restaurant
+        if table.restaurant_id == restaurant_id:
+            db.deleteTable(table_id) # delete table
+            return JsonResponse({'status': 'success'})
     return JsonResponse({'status': 'failed'})
 
 @csrf_exempt
@@ -183,8 +186,6 @@ def mark_order_finished(request):
         return JsonResponse({'status': 'success'})
     return JsonResponse({'status': 'failed'})
 
-from django.shortcuts import render
-
 def customers_view(request):
     context = {}
     return render(request, 'owners/customers.html', context)
@@ -197,9 +198,6 @@ def finish_order(request, order_id):
         order.save()
         return JsonResponse({'status': 'success'})
 
-
-from django.http import JsonResponse
-
 def get_order_details(request, table_id, unique_id=None):
     order_details = db.getOrderByTableID(table_id)
     if order_details:
@@ -208,7 +206,6 @@ def get_order_details(request, table_id, unique_id=None):
     else:
         return JsonResponse({'error': 'No active order found for this table'}, status=404)
 
-from django.shortcuts import render, redirect
 from data.model import Restaurant
 from django.http import Http404
 
@@ -222,4 +219,30 @@ def settings_view(request, restaurant_id):
         'restaurant': restaurant,
     }
     return render(request, 'owners/settings.html', context)
+
+import qrcode
+from io import BytesIO
+
+def generate_qr_code(request, table_id):
+    qr = qrcode.QRCode(
+        version=1,  # controls the size of the QR Code, higher value means bigger size
+        error_correction=qrcode.constants.ERROR_CORRECT_L,  # controls the error correction used for the QR Code
+        box_size=20,  # size of each box in pixels
+        border=4,  # thickness of the border (in boxes)
+    )
+
+    # Add data to the QR code
+    qr.add_data(table_id)
+    qr.make(fit=True)
+    
+    # Create an image from the QR Code instance
+    img = qr.make_image(fill_color="black", back_color="white")
+    
+    # Save the image in a BytesIO object
+    img_io = BytesIO()
+    img.save(img_io, format='PNG')
+    img_io.seek(0)
+    
+    # Return the image as an HTTP response
+    return HttpResponse(img_io, content_type='image/png')
 

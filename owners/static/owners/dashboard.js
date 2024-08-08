@@ -177,7 +177,7 @@ document.addEventListener("DOMContentLoaded", function () {
       button.addEventListener("click", function () {
           const tableId = this.getAttribute("data-table-id");
           console.log(`Generating QR code for table: ${tableId}`); // Debugging line
-          window.location.href = `/generate_qr_code/${tableId}/`;
+          window.location.href = `/restaurant/generate_qr_code/${tableId}/`;
       });
   });
 

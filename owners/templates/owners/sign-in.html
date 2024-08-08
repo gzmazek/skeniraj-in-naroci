@@ -147,12 +147,14 @@
     <button class="btn btn-bd-primary w-100 py-2" type="submit">Sign in</button>
   </form>
   <!-- General error messages -->
-  {% if form.non_field_errors %}
-  <div class="text-danger d-flex align-items-center">
-    <ul class="mb-0 mt-3">
-      {{ form.non_field_errors }}
-    </ul>
-  </div>
+  {% if messages %}
+  <ul class="text-danger d-flex align-items-center alert">
+      {% for message in messages %}
+          <li>
+              {{ message }}
+          </li>
+      {% endfor %}
+  </ul>
   {% endif %}
 
 </main>
