@@ -95,3 +95,10 @@ class MenuItem:
     name: str = field(default=None)
     value: float = field(default=None)
 
+@dataclass_json
+@dataclass
+class TableOrders:
+    # class that joins table object with list of active orders for that table
+    table: Table = field(default=None)
+    orders: List[CustomerOrder] = field(default_factory=list)
+

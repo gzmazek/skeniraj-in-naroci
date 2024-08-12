@@ -98,8 +98,16 @@ def sign_out(request):
 def restaurant_dashboard(request, unique_id: int):
     restaurant = db.getRestaurantByID(unique_id)
     tables = db.getTablesByRestaurant(restaurant.id)
+
+    table_orders_pairs = []
     for table in tables:
-        table.order = db.getOrderByTableID(table.id)
+        orders = db.getOrdersByTableID(table.id)
+        table_orders_pairs.append(mod.TableOrders(table=table, orders=orders))
+
+    tables_json = [table.to_json(ensure_ascii=False) for table in table_orders_pairs]
+    # Parse each JSON string into a JSON object
+    tables = [json.loads(table) for table in tables_json]
+
     context = {
         'restaurant': restaurant,
         'tables': tables,
@@ -182,7 +190,8 @@ def table_orders(request):
 def mark_order_finished(request):
     if request.method == 'POST':
         order_id = request.POST.get('order_id')
-        db.markOrderAsFinished(order_id)
+        # db.markOrderAsFinished(order_id)
+        print("Mark order finished")
         return JsonResponse({'status': 'success'})
     return JsonResponse({'status': 'failed'})
 

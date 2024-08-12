@@ -2,6 +2,8 @@
 
 {% block title %}Dashboard{% endblock %}
 
+{% block restaurant %} {{ restaurant.name }} {% endblock %}
+
 {% block extra_styles %}
 <style>
     .table-container {
@@ -73,25 +75,13 @@
     <h1 class="h2">Dashboard</h1>
 </div>
 <div class="table-container" id="tableContainer" data-restaurant-id="{{ restaurant.id }}">
-    {% for table in tables %}
-    <div class="table-item 
-        {% if table.order %}
-            {% if table.order.is_prepared %}prepared{% else %}not-prepared{% endif %}
-        {% else %}
-            no-order
-        {% endif %}" 
-        data-table-id="{{ table.id }}" 
-        style="left: {{ table.position_x }}px; top: {{ table.position_y }}px;">
-        <span>{{ table.id }}</span>
-        <button class="qr-code-table" data-table-id="{{ table.id }}">QR code</button>
-    </div>
-    {% endfor %}
+    <!-- The content is managed by javascript -->
 </div>
 <button id="editModeToggle" class="btn btn-primary">Move Tables</button>
 <button id="addTable" class="btn btn-secondary">Add Table</button>
 
 <div id="popup" class="popup">
-    <div class="popup-content">
+    <div class="popup-content rounded-3">
         <span class="close-btn" id="closePopup">&times;</span>
         <div id="popupContent"></div>
     </div>
@@ -99,6 +89,10 @@
 {% endblock %}
 
 {% block extra_scripts %}
+<script>
+    var tables = {{ tables|safe }}; // Even though this looks like syntax error, it works for some reason.
+</script>
+
 {% load static %}
 <script src="{% static 'owners/dashboard.js' %}"></script>
 {% endblock %}

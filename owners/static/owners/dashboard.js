@@ -13,6 +13,44 @@ document.addEventListener("DOMContentLoaded", function () {
 
   console.log("Dashboard JS loaded."); // Debugging line
 
+  // Place the tables on dashboard and determine their properties
+  tables.forEach(function(table_orders) {
+    var table = table_orders.table
+    var orders = table_orders.orders
+
+    // Create the div element for the table item
+    var tableItem = document.createElement("div");
+    tableItem.classList.add("table-item");
+
+    // Add classes based on the table's order status
+    if (orders.length > 0) {
+        if (orders[0].status === "PREPARED") {
+            tableItem.classList.add("prepared");
+        } else {
+            tableItem.classList.add("not-prepared");
+        }
+    } else {
+        tableItem.classList.add("no-order");
+    }
+
+    // Set the data-table-id attribute
+    tableItem.setAttribute("data-table-id", table.id);
+
+    // Set the position styles
+    tableItem.style.left = table.position_x + "px";
+    tableItem.style.top = table.position_y + "px";
+
+    // Create the span element for the table ID
+    var tableSpan = document.createElement("span");
+    tableSpan.textContent = table.id;
+
+    // Append the span to the table item div
+    tableItem.appendChild(tableSpan);
+
+    // Append the table item div to the container
+    tableContainer.appendChild(tableItem);
+});
+
   // Event Listeners
   editModeToggle.addEventListener("click", toggleEditMode);
   addTable.addEventListener("click", addNewTable);
@@ -35,7 +73,14 @@ document.addEventListener("DOMContentLoaded", function () {
       makeDraggable(item);
   });
 
+  attachDynamicEventListeners()
+
   // Functions
+  function formatDate(rawDate) {
+    const date = new Date(rawDate * 1000);
+    return `${date.toLocaleString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}, ${date.toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })}`;
+  }
+
   function toggleEditMode() {
       isEditMode = !isEditMode;
       console.log(`Edit mode: ${isEditMode}`); // Debugging line
@@ -86,8 +131,27 @@ document.addEventListener("DOMContentLoaded", function () {
       if (!isEditMode) {
           const tableId = event.currentTarget.dataset.tableId;
           console.log(`Table clicked: ${tableId}`); // Debugging line
-          popupContent.innerHTML = `<p>Details for Table ID: ${tableId}</p>`;
+
+          // Find the table entry with the specific ID
+          var tableEntry = tables.find(function(table_orders) {
+            return table_orders.table.id === Number(tableId);
+          });
+          var orders = tableEntry.orders
+
+          popupContent.innerHTML = `
+          <p>Details for Table ID: ${tableId}</p>
+          ${orders.map((order, orderIndex) => `
+          <div class="w-100 mt-3 mb-3 d-flex justify-content-between">
+            <div>Date: ${formatDate(order.date)}</div>
+            <div>Status: ${order.status}</div>
+          </div>
+          `).join('')}
+          <button class="qr-code-table btn btn-primary" data-table-id="${tableId}">QR code</button>
+          <button class="delete-table btn btn-secondary" data-table-id="${tableId}">Delete table</button>
+          `;
           popup.style.display = 'block';
+
+          attachDynamicEventListeners()
       }
   }
 
@@ -152,53 +216,56 @@ document.addEventListener("DOMContentLoaded", function () {
       return cookieValue;
   }
 
-  document.querySelectorAll(".delete-table").forEach((button) => {
-      button.addEventListener("click", function () {
-          const tableId = this.getAttribute("data-table-id");
-          fetch(`/restaurant/${restaurantId}/delete_table/${tableId}/`, {
-              method: "POST",
-              headers: {
-                  "X-CSRFToken": getCookie("csrftoken"),
-              },
-          })
-          .then((response) => response.json())
-          .then((data) => {
-              if (data.status === "success") {
-                  document.getElementById(`table-${tableId}`).remove();
-                  console.log(`Table deleted: ${tableId}`); // Debugging line
-              } else {
-                  console.error("Error deleting table");
-              }
-          });
-      });
-  });
+  function attachDynamicEventListeners(){
+    document.querySelectorAll(".delete-table").forEach((button) => {
+        button.addEventListener("click", function () {
+            const tableId = this.getAttribute("data-table-id");
+            fetch(`/restaurant/${restaurantId}/delete_table/${tableId}/`, {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": getCookie("csrftoken"),
+                },
+            })
+            .then((response) => response.json())
+            .then((data) => {
+                if (data.status === "success") {
+                    document.getElementById(`table-${tableId}`).remove();
+                    console.log(`Table deleted: ${tableId}`); // Debugging line
+                    location.reload() // Reload the page so that changes appear
+                } else {
+                    console.error("Error deleting table");
+                }
+            });
+        });
+    });
 
-  document.querySelectorAll(".qr-code-table").forEach((button) => {
-      button.addEventListener("click", function () {
-          const tableId = this.getAttribute("data-table-id");
-          console.log(`Generating QR code for table: ${tableId}`); // Debugging line
-          window.location.href = `/restaurant/generate_qr_code/${tableId}/`;
-      });
-  });
+    document.querySelectorAll(".qr-code-table").forEach((button) => {
+        button.addEventListener("click", function () {
+            const tableId = this.getAttribute("data-table-id");
+            console.log(`Generating QR code for table: ${tableId}`); // Debugging line
+            window.location.href = `/restaurant/generate_qr_code/${tableId}/`;
+        });
+    });
 
-  document.querySelectorAll(".mark-order-finished").forEach((button) => {
-      button.addEventListener("click", function () {
-          const orderId = this.getAttribute("data-order-id");
-          fetch(`/mark_order_finished/${orderId}/`, {
-              method: "POST",
-              headers: {
-                  "X-CSRFToken": getCookie("csrftoken"),
-              },
-          })
-          .then((response) => response.json())
-          .then((data) => {
-              if (data.status === "success") {
-                  console.log(`Order marked as finished: ${orderId}`); // Debugging line
-                  location.reload();  // Reload the page to update the order status
-              } else {
-                  console.error("Error marking order as finished");
-              }
-          });
-      });
-  });
+    document.querySelectorAll(".mark-order-finished").forEach((button) => {
+        button.addEventListener("click", function () {
+            const orderId = this.getAttribute("data-order-id");
+            fetch(`/mark_order_finished/${orderId}/`, {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": getCookie("csrftoken"),
+                },
+            })
+            .then((response) => response.json())
+            .then((data) => {
+                if (data.status === "success") {
+                    console.log(`Order marked as finished: ${orderId}`); // Debugging line
+                    location.reload();  // Reload the page to update the order status
+                } else {
+                    console.error("Error marking order as finished");
+                }
+            });
+        });
+    });
+  }
 });

@@ -39,7 +39,7 @@
 </head>
 <body>
     <header class="navbar sticky-top bg-dark flex-md-nowrap p-0 shadow" data-bs-theme="dark">
-        <a class="navbar-brand col-md-3 col-lg-2 me-0 px-3 fs-6 text-white" href="#">My App</a>
+        <a class="navbar-brand col-md-3 col-lg-2 me-0 px-3 fs-6 text-white" href="">{% block restaurant %}My Restaurant{% endblock %}</a>
         <ul class="navbar-nav flex-row d-md-none">
             <li class="nav-item text-nowrap">
                 <button class="nav-link px-3 text-white" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarMenu">
@@ -53,7 +53,7 @@
             <div class="offcanvas-body flex-column p-0 overflow-y-auto">
                 <ul class="nav flex-column">
                     <li class="nav-item">
-                        <a class="nav-link d-flex align-items-center gap-2 {% active request 'restaurant_dashboard' %}" href="{% url 'restaurant_dashboard' 1 %}">
+                        <a class="nav-link d-flex align-items-center gap-2 {% active request 'restaurant_dashboard' %}" href="{% url 'restaurant_dashboard' restaurant.id %}">
                             <svg class="bi"><use xlink:href="#cart"/></svg>
                             Dashboard
                         </a>

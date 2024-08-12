@@ -358,11 +358,9 @@ def getOrderByTableID_ex(table_id: int):
         }
     return None
 
-
-
-def getOrderByTableID(table_id: int):
+def getOrdersByTableID(table_id: int):
     """
-    Returns the current order for a given table if it exists
+    Returns the current orders for a given table if it exists
     """
     with connection.cursor() as cursor:
         cmd = """
@@ -371,21 +369,21 @@ def getOrderByTableID(table_id: int):
         FROM 
             CustomerOrder co
         WHERE 
-            co.table_id = %s AND co.status != 'completed'
+            co.table_id = %s AND co.status != 'FINISHED'
         ORDER BY 
             co.date DESC
-        LIMIT 1
         """
         data = (table_id,)
         cursor.execute(cmd, data)
-        order = cursor.fetchone()
+        orders = cursor.fetchall()
     
-    if order:
-        return CustomerOrder(
+    arr = []
+    for order in orders:
+        arr.append(CustomerOrder(
             id=order[0],
             status=order[1],
             date=order[2],
             table_id=order[3],
             user_id=order[4]
-        )
-    return None
+        ))
+    return arr
