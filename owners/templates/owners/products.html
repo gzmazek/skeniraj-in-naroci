@@ -1,0 +1,105 @@
+{% extends 'owners/base.html' %}
+
+{% block title %}Products{% endblock %}
+
+{% block restaurant %} {{ restaurant.name }} {% endblock %}
+
+{% block extra_styles %}
+<style>
+    .menu-container {
+        position: relative;
+        width: 100%;
+        border: 1px solid #ddd;
+        margin-top: 20px;
+    }
+    .popup {
+        display: none; /* Hidden by default */
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0,0,0,0.5);
+    }
+    .popup-content {
+        background-color: #fff;
+        margin: 15% auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 80%;
+        max-width: 500px;
+    }
+    .close-btn {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+    }
+    .close-btn:hover,
+    .close-btn:focus {
+        color: black;
+        text-decoration: none;
+        cursor: pointer;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between pt-3 pb-2 mb-3 border-bottom">
+    <div>
+        <h1 class="h2">Restaurant menu</h1>
+    </div>
+    <div>
+        <button class="btn btn-secondary" id="addItem">Add new item</button>
+    </div>
+</div>
+<div class="menu-container" id="menuContainer" data-restaurant-id="{{ restaurant.id }}">
+    <!-- The content is managed by javascript -->
+</div>
+
+<div id="popup" class="popup">
+    <div class="popup-content rounded-3">
+        <span class="close-btn" id="closePopup">&times;</span>
+
+        <!-- Tab navigation -->
+        <ul class="nav nav-tabs" id="popupTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="add-item-tab" data-bs-toggle="tab" data-bs-target="#add-item" type="button" role="tab" aria-controls="add-item" aria-selected="true">Add New Item</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="import-item-tab" data-bs-toggle="tab" data-bs-target="#import-item" type="button" role="tab" aria-controls="import-item" aria-selected="false">Import Item from other restaurant</button>
+            </li>
+        </ul>
+
+        <!-- Tab content -->
+        <div class="tab-content" id="popupTabContent">
+            <div class="tab-pane fade show active" id="add-item" role="tabpanel" aria-labelledby="add-item-tab">
+                <!-- Add New Item content -->
+                <form id="newItemForm", method="post">
+                    {% csrf_token %}
+                    <label for="name">Name:</label>
+                    <input class="form-control" type="text" id="name" name="name" required>
+                    <label for="value">Price:</label>
+                    <input class="form-control" type="number" id="value" name="value" min="0" step="0.01" required><br>
+                    <button class="btn btn-primary" type="submit">Add item</button>
+                </form>
+            </div>
+            <div class="tab-pane fade" id="import-item" role="tabpanel" aria-labelledby="import-item-tab">
+                <!-- Import Item content -->
+                <p>Not yet implemented</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    var menu = {{ menu|safe }}; // Even though this looks like syntax error, it works for some reason.
+</script>
+
+{% load static %}
+<script src="{% static 'owners/products.js' %}"></script>
+{% endblock %}

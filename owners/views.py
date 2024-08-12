@@ -2,12 +2,11 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from users.forms import SignInForm
 from django.http import JsonResponse
-from owners.forms import TableForm
 import hashlib
 
 from django.contrib import messages
 from django.views.decorators.cache import cache_control
-from owners.forms import AddRestaurantForm
+from owners.forms import AddRestaurantForm, AddItemForm
 
 import data.database as db
 import data.model as mod
@@ -114,6 +113,33 @@ def restaurant_dashboard(request, unique_id: int):
     }
     return render(request, 'owners/dashboard.html', context)
 
+# Restaurant products view
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+@restaurant_access_required
+def restaurant_products(request, unique_id: int):
+    restaurant = db.getRestaurantByID(unique_id)
+
+    if request.method == 'POST':
+        form = AddItemForm(request.POST)
+        if form.is_valid():
+            name = form.cleaned_data['name']
+            value = form.cleaned_data['value']
+
+            item = db.addNewItem(mod.Item(name=name, value=value))
+            db.addItemToRestaurantMenu(restaurant.id, item)
+    
+    menu = db.getRestaurantMenu(restaurant.id)
+
+    menu_json = [item.to_json(ensure_ascii=False) for item in menu]
+    # Parse each JSON string into a JSON object
+    menu = [json.loads(item) for item in menu_json]
+
+    context = {
+        'restaurant': restaurant,
+        'menu': menu,
+    }
+    return render(request, 'owners/products.html', context)
+
 @csrf_exempt
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 @restaurant_access_required
@@ -208,7 +234,7 @@ def finish_order(request, order_id):
         return JsonResponse({'status': 'success'})
 
 def get_order_details(request, table_id, unique_id=None):
-    order_details = db.getOrderByTableID(table_id)
+    order_details = db.getOrdersByTableID(table_id)
     if order_details:
         print(order_details)  # Add this line to debug
         return JsonResponse(order_details.to_dict(), safe=False)

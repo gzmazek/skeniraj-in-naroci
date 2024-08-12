@@ -2,7 +2,7 @@ import psycopg2
 import psycopg2.extras
 from typing import List
 
-from .model import User, Restaurant, CustomerOrder, OrderItem, Order, MenuItem, Table
+from .model import User, Restaurant, CustomerOrder, OrderItem, Order, MenuItem, Table, Item
 
 from .auth_public import db, host, user, password
 
@@ -244,6 +244,26 @@ def getRestaurantMenu(restaurant_id: int):
             menu.append(MenuItem(id=item[0], name=item[1], value=convert_decimal_to_float(item[2])))
 
     return menu
+
+def addNewItem(item: Item):
+    """
+    Adds a new item to the database. Returns the item added.
+    """
+    with connection.cursor() as cursor:
+        cmd = "INSERT INTO Item (name, value) VALUES (%s, %s) RETURNING id"
+        data = (item.name, item.value)
+        cursor.execute(cmd, data)
+        item.id = cursor.fetchone()[0]
+    return item
+
+def addItemToRestaurantMenu(restaurant_id: int, item: Item):
+    """
+    Adds an item to the restaurant menu
+    """
+    with connection.cursor() as cursor:
+        cmd = "INSERT INTO RestaurantMenu (restaurant_id, item_id) VALUES (%s, %s)"
+        data = (restaurant_id, item.id)
+        cursor.execute(cmd, data)
 
 def addCustomerOrder(order: CustomerOrder):
     """

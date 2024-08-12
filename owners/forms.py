@@ -13,4 +13,5 @@ class AddKitchenForm(forms.Form):
     name = forms.CharField(max_length=150)
 
 class AddItemForm(forms.Form):
-    item = forms.CharField(max_length=150)
+    name = forms.CharField(max_length=150)
+    value = forms.DecimalField()
