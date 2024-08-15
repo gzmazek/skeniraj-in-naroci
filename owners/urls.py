@@ -17,5 +17,12 @@ urlpatterns = [
     path('<int:unique_id>/get-order-details/<int:table_id>/', views.get_order_details, name='get_order_details'),
     path('finish-order/<int:order_id>/', views.finish_order, name='finish_order'),
     path('<int:restaurant_id>/settings/', views.settings_view, name='settings'),
-    path('generate_qr_code/<int:table_id>/', views.generate_qr_code, name='generate_qr_code')
+    path('generate_qr_code/<int:table_id>/', views.generate_qr_code, name='generate_qr_code'),
+
+    path('<int:restaurant_id>/get_items/<int:order_id>/', views.get_items_by_order_id, name='get_items_by_order_id'),
+
+
+    path('mark_item_prepared/<int:item_id>/', views.mark_item_prepared, name='mark_item_prepared'),
+    path('mark_order_prepared/<int:table_id>/', views.mark_order_prepared, name='mark_order_prepared'),
+    path('mark_order_delivered/<int:table_id>/', views.mark_order_delivered, name='mark_order_delivered')
 ]

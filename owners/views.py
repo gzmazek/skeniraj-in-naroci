@@ -91,7 +91,6 @@ def sign_out(request):
 
     return redirect('profile_rest')
 
-# Restaurant dashboard view
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 @restaurant_access_required
 def restaurant_dashboard(request, unique_id: int):
@@ -101,10 +100,13 @@ def restaurant_dashboard(request, unique_id: int):
     table_orders_pairs = []
     for table in tables:
         orders = db.getOrdersByTableID(table.id)
+        
+        # Log the orders to ensure they're being fetched correctly
+        print(f"Orders with items for table {table.id}: {orders}")
+
         table_orders_pairs.append(mod.TableOrders(table=table, orders=orders))
 
-    tables_json = [table.to_json(ensure_ascii=False) for table in table_orders_pairs]
-    # Parse each JSON string into a JSON object
+    tables_json = [table_orders_pair.to_json(ensure_ascii=False) for table_orders_pair in table_orders_pairs]
     tables = [json.loads(table) for table in tables_json]
 
     context = {
@@ -225,6 +227,25 @@ def customers_view(request):
     context = {}
     return render(request, 'owners/customers.html', context)
 
+def mark_item_prepared(request, item_id):
+    if request.method == "POST":
+        success = db.markItemAsPrepared(item_id)
+        return JsonResponse({'success': success})
+    return JsonResponse({'success': False}, status=400)
+
+def mark_order_prepared(request, table_id):
+    if request.method == "POST":
+        success = db.markOrderAsPrepared(table_id)
+        return JsonResponse({'success': success})
+    return JsonResponse({'success': False}, status=400)
+
+def mark_order_delivered(request, table_id):
+    if request.method == "POST":
+        success = db.markOrderAsDelivered(table_id)
+        return JsonResponse({'success': success})
+    return JsonResponse({'success': False}, status=400)
+
+
 @csrf_exempt
 def finish_order(request, order_id):
     if request.method == 'POST':
@@ -240,6 +261,24 @@ def get_order_details(request, table_id, unique_id=None):
         return JsonResponse(order_details.to_dict(), safe=False)
     else:
         return JsonResponse({'error': 'No active order found for this table'}, status=404)
+    
+
+def get_items_by_order_id(request, restaurant_id, order_id):
+    # ta funkcija je zato, da ga kliče funkcija v js in dobi order iteme ne da bi refreshal
+    # stran. vrne tudi item.name, namesto item_id
+    # restuarant_id will be later used just for error logging (checking the system)
+    if request.method == "GET":
+        items = db.getItemsByOrderID(order_id) 
+        items_data = [
+            {
+                'name': db.getItemNameByID(item.item_id),
+                'quantity': item.quantity,
+                'status': item.status
+            } for item in items
+        ]
+        return JsonResponse({'items': items_data})
+    else:
+        return JsonResponse({'error': 'Invalid request method'}, status=405)
 
 from data.model import Restaurant
 from django.http import Http404

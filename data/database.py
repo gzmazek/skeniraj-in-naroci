@@ -378,7 +378,7 @@ def getOrderByTableID_ex(table_id: int):
         }
     return None
 
-def getOrdersByTableID(table_id: int):
+def getOrdersByTableID_v0(table_id: int):
     """
     Returns the current orders for a given table if it exists
     """
@@ -407,3 +407,137 @@ def getOrdersByTableID(table_id: int):
             user_id=order[4]
         ))
     return arr
+
+def getOrdersByTableID(table_id: int) -> List[CustomerOrder]:
+    """
+    Returns the current orders for a given table, including associated items.
+    """
+    with connection.cursor() as cursor:
+        # Fetch orders for the table
+        cmd = """
+        SELECT 
+            co.id, co.status, co.date, co.table_id, co.user_id
+        FROM 
+            CustomerOrder co
+        WHERE 
+            co.table_id = %s AND co.status != 'FINISHED'
+        ORDER BY 
+            co.date DESC
+        """
+        cursor.execute(cmd, (table_id,))
+        orders = cursor.fetchall()
+        print(f"Orders retrieved for table {table_id}: {orders}")
+    
+    arr = []
+    for order in orders:
+        order_id = order[0]
+        print(f"Processing order {order_id} for table {table_id}")
+
+        # Use the new function to fetch the items for this order
+        order_items = getItemsByOrderID(order_id)
+
+        # Create the CustomerOrder object with its items
+        arr.append(CustomerOrder(
+            id=order[0],
+            status=order[1],
+            date=order[2],
+            table_id=order[3],
+            user_id=order[4],
+        ))
+
+    print(f"Final order list for table {table_id}: {arr}")
+    return arr
+
+def getItemsByOrderID(order_id: int) -> List[OrderItem]:
+    """
+    Returns the items associated with a given order, including the item name.
+    """
+    with connection.cursor() as cursor:
+        item_cmd = """
+        SELECT 
+            oi.item_id, oi.quantity, oi.status
+        FROM 
+            OrderItem oi
+        WHERE 
+            oi.customer_order_id = %s
+        """
+        cursor.execute(item_cmd, (order_id,))
+        items = cursor.fetchall()
+        print(f"Items retrieved for order {order_id}: {items}")
+
+        # Convert the items into a list of OrderItem objects with item names
+        order_items = []
+        for item in items:
+            order_items.append(OrderItem(
+                item_id=item[0],
+                quantity=item[1],
+                status=item[2]
+            ))
+        print(f"Order items for order {order_id}: {order_items}")
+    
+    return order_items
+
+def getItemNameByID(item_id: int) -> str:
+    """
+    Returns the name of the item given its ID.
+    """
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT name FROM Item WHERE id = %s", (item_id,))
+        result = cursor.fetchone()
+        if result:
+            return result[0]  # The name of the item
+        return None
+
+
+def markItemAsPrepared(item_id):
+    """
+    Marks a specific order item as prepared in the database.
+    """
+    try:
+        with connection.cursor() as cursor:
+            cmd = "UPDATE OrderItem SET status = 'prepared' WHERE id = %s"
+            cursor.execute(cmd, [item_id])
+        return True
+    except Exception as e:
+        print(f"Error marking item as prepared: {e}")
+        return False
+
+def markOrderAsPrepared(table_id):
+    """
+    Marks all items in an order for a given table as prepared and updates the order status.
+    """
+    try:
+        with connection.cursor() as cursor:
+            # Update the order status to 'prepared' for orders at the table that are not yet completed
+            cmd = "UPDATE CustomerOrder SET status = 'prepared' WHERE table_id = %s AND status != 'completed'"
+            cursor.execute(cmd, [table_id])
+
+            # Update all associated items to 'prepared'
+            cmd = """
+            UPDATE OrderItem
+            SET status = 'prepared'
+            WHERE order_id IN (
+                SELECT id FROM CustomerOrder WHERE table_id = %s AND status = 'prepared'
+            )
+            """
+            cursor.execute(cmd, [table_id])
+
+        return True
+    except Exception as e:
+        print(f"Error marking order as prepared: {e}")
+        return False
+
+def markOrderAsDelivered(table_id):
+    """
+    Marks the order for a given table as delivered by updating the order status.
+    """
+    try:
+        with connection.cursor() as cursor:
+            # Update the order status to 'completed' for orders at the table that are prepared
+            cmd = "UPDATE CustomerOrder SET status = 'completed' WHERE table_id = %s AND status = 'prepared'"
+            cursor.execute(cmd, [table_id])
+        return True
+    except Exception as e:
+        print(f"Error marking order as delivered: {e}")
+        return False
+
