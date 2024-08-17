@@ -9,7 +9,6 @@
     .menu-container {
         position: relative;
         width: 100%;
-        border: 1px solid #ddd;
         margin-top: 20px;
     }
     .popup {
@@ -43,6 +42,9 @@
         text-decoration: none;
         cursor: pointer;
     }
+    .table-custom{
+        border: 1px solid #ddd;
+    }
 </style>
 {% endblock %}
 
@@ -53,6 +55,7 @@
     </div>
     <div>
         <button class="btn btn-secondary" id="addItem">Add new item</button>
+        <button class="btn btn-primary" id="removeItems">Remove items</button>
     </div>
 </div>
 <div class="menu-container" id="menuContainer" data-restaurant-id="{{ restaurant.id }}">
@@ -77,14 +80,11 @@
         <div class="tab-content" id="popupTabContent">
             <div class="tab-pane fade show active" id="add-item" role="tabpanel" aria-labelledby="add-item-tab">
                 <!-- Add New Item content -->
-                <form id="newItemForm", method="post">
-                    {% csrf_token %}
-                    <label for="name">Name:</label>
-                    <input class="form-control" type="text" id="name" name="name" required>
-                    <label for="value">Price:</label>
-                    <input class="form-control" type="number" id="value" name="value" min="0" step="0.01" required><br>
-                    <button class="btn btn-primary" type="submit">Add item</button>
-                </form>
+                <label for="name">Name:</label>
+                <input class="form-control" type="text" id="name" name="name" required>
+                <label for="value">Price:</label>
+                <input class="form-control" type="number" id="value" name="value" min="0" step="0.01" required><br>
+                <button class="btn btn-primary" id="add_item_btn" type="submit">Add item</button>
             </div>
             <div class="tab-pane fade" id="import-item" role="tabpanel" aria-labelledby="import-item-tab">
                 <!-- Import Item content -->

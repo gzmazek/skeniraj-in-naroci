@@ -120,15 +120,6 @@ def restaurant_dashboard(request, unique_id: int):
 @restaurant_access_required
 def restaurant_products(request, unique_id: int):
     restaurant = db.getRestaurantByID(unique_id)
-
-    if request.method == 'POST':
-        form = AddItemForm(request.POST)
-        if form.is_valid():
-            name = form.cleaned_data['name']
-            value = form.cleaned_data['value']
-
-            item = db.addNewItem(mod.Item(name=name, value=value))
-            db.addItemToRestaurantMenu(restaurant.id, item)
     
     menu = db.getRestaurantMenu(restaurant.id)
 
@@ -248,15 +239,6 @@ def mark_order_delivered(request, order_id):
         return JsonResponse({'success': success})
     return JsonResponse({'success': False}, status=400)
 
-
-@csrf_exempt
-def finish_order(request, order_id):
-    if request.method == 'POST':
-        order = order.objects.get(id=order_id)
-        order.status = 'finished'
-        order.save()
-        return JsonResponse({'status': 'success'})
-
 def get_order_details(request, table_id, unique_id=None):
     order_details = db.getOrdersByTableID(table_id)
     if order_details:
@@ -283,6 +265,27 @@ def get_items_by_order_id(request, restaurant_id, order_id):
         return JsonResponse({'items': items_data})
     else:
         return JsonResponse({'error': 'Invalid request method'}, status=405)
+    
+def remove_menu_items(request, restaurant_id):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        success = True
+        for i in data:
+            success = db.removeItemFromRestaurantMenu(i, restaurant_id) and success
+        return JsonResponse({'success': success})
+    return JsonResponse({'success': False})
+
+def add_menu_item(request, restaurant_id):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        name = data["name"]
+        value = data["value"]
+
+        item = db.addNewItem(mod.Item(name=name, value=value))
+        success = db.addItemToRestaurantMenu(restaurant_id, item)
+        return JsonResponse({'success': success})
+    return JsonResponse({'success': False})
+        
 
 from data.model import Restaurant
 from django.http import Http404

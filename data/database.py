@@ -260,10 +260,15 @@ def addItemToRestaurantMenu(restaurant_id: int, item: Item):
     """
     Adds an item to the restaurant menu
     """
-    with connection.cursor() as cursor:
-        cmd = "INSERT INTO RestaurantMenu (restaurant_id, item_id) VALUES (%s, %s)"
-        data = (restaurant_id, item.id)
-        cursor.execute(cmd, data)
+    try:
+        with connection.cursor() as cursor:
+            cmd = "INSERT INTO RestaurantMenu (restaurant_id, item_id) VALUES (%s, %s)"
+            data = (restaurant_id, item.id)
+            cursor.execute(cmd, data)
+            return True
+    except Exception as e:
+        print(f"Error adding item to restaurant menu: {e}")
+        return False
 
 def addCustomerOrder(order: CustomerOrder):
     """
@@ -535,5 +540,19 @@ def markOrderAsDelivered(order_id):
         return True
     except Exception as e:
         print(f"Error marking order as delivered: {e}")
+        return False
+    
+def removeItemFromRestaurantMenu(item_id:int, restaurant_id:int):
+    """
+    Removes the item from menu of given restaurant
+    """
+    try:
+        with connection.cursor() as cursor:
+            # Update the order status to finished for given order
+            cmd = "DELETE FROM RestaurantMenu WHERE restaurant_id = %s AND item_id = %s"
+            cursor.execute(cmd, [restaurant_id, item_id])
+        return True
+    except Exception as e:
+        print(f"Error deleting item from restaurant menu: {e}")
         return False
 
