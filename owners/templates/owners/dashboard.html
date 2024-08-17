@@ -49,7 +49,8 @@
     }
     .popup-content {
         background-color: #fff;
-        margin: 15% auto;
+        margin: auto;
+        margin-top: 50px;
         padding: 20px;
         border: 1px solid #888;
         width: 80%;
@@ -67,16 +68,23 @@
         text-decoration: none;
         cursor: pointer;
     }
+
+    .order-item{
+        height: 30px;
+    }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center mb-3 border-bottom">
     <h1 class="h2">Dashboard</h1>
 </div>
 <div class="table-container" id="tableContainer" data-restaurant-id="{{ restaurant.id }}">
     <!-- The content is managed by javascript -->
 </div>
+
+<hr>
+
 <button id="editModeToggle" class="btn btn-primary">Move Tables</button>
 <button id="addTable" class="btn btn-secondary">Add Table</button>
 

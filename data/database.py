@@ -422,19 +422,17 @@ def getOrdersByTableID(table_id: int) -> List[CustomerOrder]:
         WHERE 
             co.table_id = %s AND co.status != 'FINISHED'
         ORDER BY 
-            co.date DESC
+            co.date ASC
         """
         cursor.execute(cmd, (table_id,))
         orders = cursor.fetchall()
-        print(f"Orders retrieved for table {table_id}: {orders}")
     
     arr = []
     for order in orders:
         order_id = order[0]
-        print(f"Processing order {order_id} for table {table_id}")
 
         # Use the new function to fetch the items for this order
-        order_items = getItemsByOrderID(order_id)
+        # order_items = getItemsByOrderID(order_id)
 
         # Create the CustomerOrder object with its items
         arr.append(CustomerOrder(
@@ -444,8 +442,6 @@ def getOrdersByTableID(table_id: int) -> List[CustomerOrder]:
             table_id=order[3],
             user_id=order[4],
         ))
-
-    print(f"Final order list for table {table_id}: {arr}")
     return arr
 
 def getItemsByOrderID(order_id: int) -> List[OrderItem]:
@@ -488,20 +484,20 @@ def getItemNameByID(item_id: int) -> str:
             return result[0]  # The name of the item
         return None
 
-
-def markItemAsPrepared(item_id):
+def markItemAsPrepared(item_id, order_id):
     """
     Marks a specific order item as prepared in the database.
     """
     try:
         with connection.cursor() as cursor:
-            cmd = "UPDATE OrderItem SET status = 'prepared' WHERE id = %s"
-            cursor.execute(cmd, [item_id])
+            cmd = "UPDATE OrderItem SET status = 'prepared' WHERE item_id = %s AND customer_order_id = %s"
+            cursor.execute(cmd, [item_id, order_id])
         return True
     except Exception as e:
         print(f"Error marking item as prepared: {e}")
         return False
 
+# Never used
 def markOrderAsPrepared(table_id):
     """
     Marks all items in an order for a given table as prepared and updates the order status.
@@ -509,7 +505,7 @@ def markOrderAsPrepared(table_id):
     try:
         with connection.cursor() as cursor:
             # Update the order status to 'prepared' for orders at the table that are not yet completed
-            cmd = "UPDATE CustomerOrder SET status = 'prepared' WHERE table_id = %s AND status != 'completed'"
+            cmd = "UPDATE CustomerOrder SET status = 'PREPARED' WHERE table_id = %s AND status != 'FINISHED'"
             cursor.execute(cmd, [table_id])
 
             # Update all associated items to 'prepared'
@@ -517,7 +513,7 @@ def markOrderAsPrepared(table_id):
             UPDATE OrderItem
             SET status = 'prepared'
             WHERE order_id IN (
-                SELECT id FROM CustomerOrder WHERE table_id = %s AND status = 'prepared'
+                SELECT id FROM CustomerOrder WHERE table_id = %s AND status = 'PREPARED'
             )
             """
             cursor.execute(cmd, [table_id])
@@ -527,15 +523,15 @@ def markOrderAsPrepared(table_id):
         print(f"Error marking order as prepared: {e}")
         return False
 
-def markOrderAsDelivered(table_id):
+def markOrderAsDelivered(order_id):
     """
-    Marks the order for a given table as delivered by updating the order status.
+    Marks the order as delivered by updating the order status.
     """
     try:
         with connection.cursor() as cursor:
-            # Update the order status to 'completed' for orders at the table that are prepared
-            cmd = "UPDATE CustomerOrder SET status = 'completed' WHERE table_id = %s AND status = 'prepared'"
-            cursor.execute(cmd, [table_id])
+            # Update the order status to finished for given order
+            cmd = "UPDATE CustomerOrder SET status = 'FINISHED' WHERE id = %s"
+            cursor.execute(cmd, [order_id])
         return True
     except Exception as e:
         print(f"Error marking order as delivered: {e}")

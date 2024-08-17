@@ -22,7 +22,7 @@ urlpatterns = [
     path('<int:restaurant_id>/get_items/<int:order_id>/', views.get_items_by_order_id, name='get_items_by_order_id'),
 
 
-    path('mark_item_prepared/<int:item_id>/', views.mark_item_prepared, name='mark_item_prepared'),
-    path('mark_order_prepared/<int:table_id>/', views.mark_order_prepared, name='mark_order_prepared'),
-    path('mark_order_delivered/<int:table_id>/', views.mark_order_delivered, name='mark_order_delivered')
+    path('mark_item_prepared/<int:order_id>/<int:item_id>/', views.mark_item_prepared, name='mark_item_prepared'),
+    path('mark_order_prepared/<int:order_id>/', views.mark_order_prepared, name='mark_order_prepared'),
+    path('mark_order_delivered/<int:order_id>/', views.mark_order_delivered, name='mark_order_delivered')
 ]

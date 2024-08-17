@@ -73,8 +73,6 @@ document.addEventListener("DOMContentLoaded", function () {
       makeDraggable(item);
   });
 
-  attachDynamicEventListeners()
-
   // Functions
   function formatDate(rawDate) {
     const date = new Date(rawDate * 1000);
@@ -134,63 +132,98 @@ document.addEventListener("DOMContentLoaded", function () {
 
         // Find the table entry with the specific ID
         const tableEntry = tables.find(table_orders => table_orders.table.id === Number(tableId));
-        if (!tableEntry) {
-            console.log("No orders found for this table.");
-            return;
-        }
-
         const orders = tableEntry.orders;
+
         let orderDetailsHtml = `<p>Details for Table ID: ${tableId}</p>`;
 
+        // Build the basic structure first
         orders.forEach((order) => {
             orderDetailsHtml += `
                 <div class="w-100 mt-3 mb-3 d-flex justify-content-between">
                     <div>Date: ${formatDate(order.date)}</div>
                     <div>Status: ${order.status}</div>
                 </div>
-                <ul id="order-items-list-${order.id}" class="order-items-list">`;
-
-            // Fetch items for this order
-            fetch(`get_items/${order.id}/`)
-                .then(response => response.json())
-                .then(data => {
-                    console.log('Fetches items', data)
-                    if (data.items) {
-                        let itemsHtml = '';
-                        data.items.forEach(item => {
-                            itemsHtml += `
-                                <li>
-                                    ${item.quantity}x ${item.name} - ${item.status} - Quantity: 
-                                    <button class="btn btn-sm btn-primary mark-item-prepared" data-item-id="${item.item_id}" data-table-id="${tableId}">Mark as Prepared</button>
-                                </li>`;
-                        });
-                        document.getElementById(`order-items-list-${order.id}`).innerHTML = itemsHtml;
-                        attachDynamicEventListeners();
-                    }
-                })
-                .catch(error => console.error('Error fetching items:', error));
-
-            orderDetailsHtml += `</ul>`;
+                <ul id="order-items-list-${order.id}" class="order-items-list"></ul>`;
         });
 
         // Add QR code and Delete table buttons
         orderDetailsHtml += `
+            <hr>
+            <div class="d-flex justify-content-between">
             <button class="qr-code-table btn btn-primary" data-table-id="${tableId}">QR code</button>
             <button class="delete-table btn btn-secondary" data-table-id="${tableId}">Delete table</button>
+            </div>
         `;
 
-        // Add buttons for marking orders as prepared and delivered
-        orderDetailsHtml += `
-            <button class="btn btn-success mark-order-prepared" data-table-id="${tableId}">Mark Order as Prepared</button>
-            <button class="btn btn-secondary mark-order-delivered" data-table-id="${tableId}">Mark Order as Delivered</button>
-        `;
-
+        // Render the initial structure
         popupContent.innerHTML = orderDetailsHtml;
         popup.style.display = 'block';
+
+        // Now fetch items and update the lists
+        const fetchPromises = orders.map(order => {
+            let allItemsPrepared = true;
+
+            return fetch(`get_items/${order.id}/`)
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Fetched items', data);
+                    if (data.items) {
+                        let itemsHtml = '';
+                        data.items.forEach(item => {
+                            if (item.status === "prepared") {
+                                itemsHtml += `
+                                    <li>
+                                        <div class="d-flex order-item mt-2">
+                                            ${item.quantity}x ${item.name} - ${item.status}
+                                        </div>
+                                    </li>`;
+                            } else {
+                                allItemsPrepared = false;
+                                itemsHtml += `
+                                    <li>
+                                        <div class="d-flex justify-content-between order-item mt-2">
+                                            ${item.quantity}x ${item.name} - ${item.status}
+                                            <button class="btn btn-sm btn-primary border-0 mark-item-prepared" data-item-id="${item.item_id}" data-order-id="${order.id}" data-table-id="${tableId}">Mark as Prepared</button>
+                                        </div>
+                                    </li>`;
+                            }
+                        });
+                        // Now update the corresponding list
+                        document.getElementById(`order-items-list-${order.id}`).innerHTML = itemsHtml;
+                    }
+                    return { orderId: order.id, allItemsPrepared };
+                })
+                .catch(error => {
+                    console.error('Error fetching items:', error);
+                    return { orderId: order.id, allItemsPrepared: false };
+                });
+        });
+
+        // After fetching items, update buttons
+        Promise.all(fetchPromises).then(results => {
+            results.forEach(result => {
+                const { orderId, allItemsPrepared } = result;
+
+                let buttonHtml = '';
+                if (allItemsPrepared) {
+                    buttonHtml += `
+                        <button class="btn btn-secondary mark-order-delivered" data-table-id="${tableId}" data-order-id="${orderId}">Mark Order as Delivered</button>
+                    `;
+                } else {
+                    buttonHtml += `
+                        <button class="btn btn-success mark-order-prepared" data-table-id="${tableId}" data-order-id="${orderId}">Mark Order as Prepared</button>
+                    `;
+                }
+
+                // Append buttons to the container
+                document.getElementById(`order-items-list-${orderId}`).insertAdjacentHTML('afterend', buttonHtml);
+            });
+
+            // Attach event listeners for newly created buttons
+            attachDynamicEventListeners();
+        });
     }
 }
-
-
 
   function saveTablePosition(id, position) {
       fetch(`/restaurant/${restaurantId}/save_table_position/${id}/`, {
@@ -287,8 +320,9 @@ document.addEventListener("DOMContentLoaded", function () {
     document.querySelectorAll(".mark-item-prepared").forEach(button => {
         button.addEventListener("click", function () {
             const itemId = this.getAttribute("data-item-id");
+            const orderId = this.getAttribute("data-order-id");
             const tableId = this.getAttribute("data-table-id");
-            fetch(`/mark_item_prepared/${itemId}/`, {
+            fetch(`/restaurant/mark_item_prepared/${orderId}/${itemId}/`, {
                 method: "POST",
                 headers: {
                     "X-CSRFToken": getCookie("csrftoken"),
@@ -309,8 +343,9 @@ document.addEventListener("DOMContentLoaded", function () {
     // Additional event listeners for mark-order-prepared and mark-order-delivered buttons
     document.querySelectorAll(".mark-order-prepared").forEach((button) => {
         button.addEventListener("click", function () {
+            const orderId = this.getAttribute("data-order-id");
             const tableId = this.getAttribute("data-table-id");
-            fetch(`/mark_order_prepared/${tableId}/`, {
+            fetch(`/restaurant/mark_order_prepared/${orderId}/`, {
                 method: "POST",
                 headers: {
                     "X-CSRFToken": getCookie("csrftoken"),
@@ -319,7 +354,7 @@ document.addEventListener("DOMContentLoaded", function () {
             .then((response) => response.json())
             .then((data) => {
                 if (data.success) {
-                    console.log(`Order marked as prepared for table: ${tableId}`); // Debugging line
+                    console.log(`Order marked as prepared for order: ${orderId}`); // Debugging line
                     showPopup({ currentTarget: document.querySelector(`[data-table-id="${tableId}"]`) });
                 } else {
                     console.error("Error marking order as prepared");
@@ -330,8 +365,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
     document.querySelectorAll(".mark-order-delivered").forEach((button) => {
         button.addEventListener("click", function () {
-            const tableId = this.getAttribute("data-table-id");
-            fetch(`/mark_order_delivered/${tableId}/`, {
+            const orderId = this.getAttribute("data-order-id");
+            fetch(`/restaurant/mark_order_delivered/${orderId}/`, {
                 method: "POST",
                 headers: {
                     "X-CSRFToken": getCookie("csrftoken"),
@@ -340,7 +375,7 @@ document.addEventListener("DOMContentLoaded", function () {
             .then((response) => response.json())
             .then((data) => {
                 if (data.success) {
-                    console.log(`Order marked as delivered for table: ${tableId}`); // Debugging line
+                    console.log(`Order marked as delivered for order: ${orderId}`); // Debugging line
                     location.reload();  // Reload the page to update the order status
                 } else {
                     console.error("Error marking order as delivered");

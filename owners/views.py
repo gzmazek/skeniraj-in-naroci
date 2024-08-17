@@ -227,21 +227,24 @@ def customers_view(request):
     context = {}
     return render(request, 'owners/customers.html', context)
 
-def mark_item_prepared(request, item_id):
+def mark_item_prepared(request, item_id, order_id):
     if request.method == "POST":
-        success = db.markItemAsPrepared(item_id)
+        success = db.markItemAsPrepared(item_id, order_id)
         return JsonResponse({'success': success})
     return JsonResponse({'success': False}, status=400)
 
-def mark_order_prepared(request, table_id):
+def mark_order_prepared(request, order_id):
     if request.method == "POST":
-        success = db.markOrderAsPrepared(table_id)
+        orderItems = db.getItemsByOrderID(order_id)
+        success = True
+        for item in orderItems:
+            success = db.markItemAsPrepared(item.item_id, order_id) and success
         return JsonResponse({'success': success})
     return JsonResponse({'success': False}, status=400)
 
-def mark_order_delivered(request, table_id):
+def mark_order_delivered(request, order_id):
     if request.method == "POST":
-        success = db.markOrderAsDelivered(table_id)
+        success = db.markOrderAsDelivered(order_id)
         return JsonResponse({'success': success})
     return JsonResponse({'success': False}, status=400)
 
@@ -272,6 +275,7 @@ def get_items_by_order_id(request, restaurant_id, order_id):
         items_data = [
             {
                 'name': db.getItemNameByID(item.item_id),
+                'item_id': item.item_id,
                 'quantity': item.quantity,
                 'status': item.status
             } for item in items
