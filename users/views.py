@@ -14,14 +14,23 @@ import json
 from users.decorators import user_sign_in_required, active_order
 
 def home(request):
+    """
+    Home page of the website.
+    """
     return render(request, 'users/home.html')
 
 @user_sign_in_required
 def scan_qr(request):
+    """
+    Page to scan QR code.
+    """
     return render(request, 'users/qr_reader.html')
 
 @csrf_exempt
 def process_qr(request):
+    """
+    Function to process the QR code data and redirect accordingly.
+    """
     if request.method == 'POST':
         qr_data = request.POST.get('qr_data')
 
@@ -47,6 +56,9 @@ def process_qr(request):
         return JsonResponse({'message': 'Invalid request method.'}, status=400)
 
 def register(request):
+    """
+    Register page to create new account. This account can be used both as a user or as a restaurant owner.
+    """
     if request.method == 'POST':
         form = RegistrationForm(request.POST)
         if form.is_valid():
@@ -75,6 +87,9 @@ def register(request):
     return render(request, 'users/register.html', {'form': form})
 
 def sign_in(request):
+    """
+    Sign-in page for users.
+    """
     if request.method == 'POST':
         form = SignInForm(request.POST)
         if form.is_valid():
@@ -109,6 +124,9 @@ def sign_in(request):
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 @user_sign_in_required
 def profile(request):
+    """
+    Profile page for users.
+    """
     user_id = request.session['user_id']
     orders = db.getUserOrders(user_id)
     popularRestaurants = db.getUserPopularRestaurants(user_id)
@@ -125,6 +143,9 @@ def profile(request):
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 @user_sign_in_required
 def settings(request):
+    """
+    Settings page for users.
+    """
     if request.method == 'POST':
         user_id = request.session['user_id']
         form = ChangePasswordForm(request.POST)
@@ -156,6 +177,9 @@ def settings(request):
 
 @user_sign_in_required
 def order(request, table_id: int):
+    """
+    Page to order at a given table that belongs to some restaurant.
+    """
     request.session['table_id'] = table_id
 
     restaurant = db.getRestaurantFromTableID(table_id)
@@ -185,6 +209,9 @@ def order(request, table_id: int):
 @user_sign_in_required
 @active_order
 def order_confirm(request):
+    """
+    Page to confirm the order.
+    """
     selected_items = request.session['selected_items']
     quantities = request.session['quantities']
 
@@ -201,6 +228,9 @@ def order_confirm(request):
 @user_sign_in_required
 @active_order
 def place_order(request):
+    """
+    Function to place the order and add it to the database.
+    """
     selected_items = request.session.pop('selected_items', {})
     quantities = request.session.pop('quantities', {})
     user_id = request.session['user_id']
@@ -218,6 +248,9 @@ def place_order(request):
 
 @user_sign_in_required
 def sign_out(request):
+    """
+    Sign-out and clear the session of the user.
+    """
     # Clear session
     del request.session['user_id']
     

@@ -80,7 +80,11 @@ document.addEventListener("DOMContentLoaded", function () {
                 `).join('')}
             </tbody>
         </table>
-        ${isRemoveMode ? `<button id="removeButton" class="btn btn-primary">Remove selected items</button>` : ''}
+        ${isRemoveMode ? `
+            <div class="d-flex justify-content-end mt-2 mb-2">
+            <button id="removeButton" class="btn btn-primary">Remove selected items</button>
+            </div>
+            ` : ''}
     `;
 
     // Attach the event listener to the remove button if in remove mode

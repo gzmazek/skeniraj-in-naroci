@@ -9,12 +9,12 @@ def owner_required(view_func):
             return redirect('sign-in_rest')
     return wrapper
 
-# Decorator to check if unique_id is in request.session['owner_id'][1] aka. owner can acess this restaurant
+# Decorator to check if restaurant_id is in request.session['owner_id'][1] aka. owner can acess this restaurant
 # Also checks if owner_id is in session
 def restaurant_access_required(view_func):
-    def wrapper(request, unique_id, *args, **kwargs):
-        if 'owner_id' in request.session and unique_id in request.session['owner_id'][1]:
-            return view_func(request, unique_id, *args, **kwargs)
+    def wrapper(request, restaurant_id, *args, **kwargs):
+        if 'owner_id' in request.session and restaurant_id in request.session['owner_id'][1]:
+            return view_func(request, restaurant_id, *args, **kwargs)
         else:
             return redirect('profile_rest')
     return wrapper

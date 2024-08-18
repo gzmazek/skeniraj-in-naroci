@@ -464,7 +464,6 @@ def getItemsByOrderID(order_id: int) -> List[OrderItem]:
         """
         cursor.execute(item_cmd, (order_id,))
         items = cursor.fetchall()
-        print(f"Items retrieved for order {order_id}: {items}")
 
         # Convert the items into a list of OrderItem objects with item names
         order_items = []
@@ -474,7 +473,6 @@ def getItemsByOrderID(order_id: int) -> List[OrderItem]:
                 quantity=item[1],
                 status=item[2]
             ))
-        print(f"Order items for order {order_id}: {order_items}")
     
     return order_items
 
@@ -502,7 +500,7 @@ def markItemAsPrepared(item_id, order_id):
         print(f"Error marking item as prepared: {e}")
         return False
 
-# Never used
+# Never used and incorrectly implemented
 def markOrderAsPrepared(table_id):
     """
     Marks all items in an order for a given table as prepared and updates the order status.

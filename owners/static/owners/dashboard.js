@@ -163,7 +163,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const fetchPromises = orders.map(order => {
             let allItemsPrepared = true;
 
-            return fetch(`get_items/${order.id}/`)
+            return fetch(`/restaurant/${restaurantId}/get_order_items/${order.id}/`)
                 .then(response => response.json())
                 .then(data => {
                     console.log('Fetched items', data);
@@ -287,6 +287,7 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   function attachDynamicEventListeners() {
+    // Delete table button functionality
     document.querySelectorAll(".delete-table").forEach((button) => {
         button.addEventListener("click", function () {
             const tableId = this.getAttribute("data-table-id");
@@ -309,6 +310,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 
+    // QR code generation button functionallity
     document.querySelectorAll(".qr-code-table").forEach((button) => {
         button.addEventListener("click", function () {
             const tableId = this.getAttribute("data-table-id");
@@ -317,12 +319,13 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 
+    // Mark item prepared button functionallity
     document.querySelectorAll(".mark-item-prepared").forEach(button => {
         button.addEventListener("click", function () {
             const itemId = this.getAttribute("data-item-id");
             const orderId = this.getAttribute("data-order-id");
             const tableId = this.getAttribute("data-table-id");
-            fetch(`/restaurant/mark_item_prepared/${orderId}/${itemId}/`, {
+            fetch(`/restaurant/${restaurantId}/mark_item_prepared/${orderId}/${itemId}/`, {
                 method: "POST",
                 headers: {
                     "X-CSRFToken": getCookie("csrftoken"),
@@ -340,12 +343,12 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 
-    // Additional event listeners for mark-order-prepared and mark-order-delivered buttons
+    // Mark order prepared button functionality
     document.querySelectorAll(".mark-order-prepared").forEach((button) => {
         button.addEventListener("click", function () {
             const orderId = this.getAttribute("data-order-id");
             const tableId = this.getAttribute("data-table-id");
-            fetch(`/restaurant/mark_order_prepared/${orderId}/`, {
+            fetch(`/restaurant/${restaurantId}/mark_order_prepared/${orderId}/`, {
                 method: "POST",
                 headers: {
                     "X-CSRFToken": getCookie("csrftoken"),
@@ -363,10 +366,11 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 
+    // Mark order delivered button functionality
     document.querySelectorAll(".mark-order-delivered").forEach((button) => {
         button.addEventListener("click", function () {
             const orderId = this.getAttribute("data-order-id");
-            fetch(`/restaurant/mark_order_delivered/${orderId}/`, {
+            fetch(`/restaurant/${restaurantId}/mark_order_delivered/${orderId}/`, {
                 method: "POST",
                 headers: {
                     "X-CSRFToken": getCookie("csrftoken"),
@@ -384,6 +388,5 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 }
-
 
 });

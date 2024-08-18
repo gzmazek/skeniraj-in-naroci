@@ -25,6 +25,9 @@ logger = logging.getLogger(__name__)
 @cache_control(no_cache=True, must_revalidate=True, no_store=True) # Prevents from browser caching page and hence rendering it when user is already logged out
 @owner_required
 def profile(request):
+    """
+    Profile page of owner.
+    """
     owner_id = request.session['owner_id'][0]
     print(owner_id)
     if request.method == 'POST':
@@ -46,8 +49,10 @@ def profile(request):
     restaurants = db.getRestaurantsOfOwner(owner_id)
     return render(request, 'owners/profile.html', {'restaurants': restaurants,'form': form})
 
-
 def sign_in(request):
+    """
+    Sign-in page for restaurants (owners)
+    """
     if request.method == 'POST':
         form = SignInForm(request.POST)
         if form.is_valid():
@@ -84,8 +89,11 @@ def sign_in(request):
         form = SignInForm()
     return render(request, 'owners/sign-in.html', {'form': form})
 
-
+@owner_required
 def sign_out(request):
+    """
+    Sign-out function to terminate owner session
+    """
     # Clear session
     del request.session['owner_id']
 
@@ -93,8 +101,11 @@ def sign_out(request):
 
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 @restaurant_access_required
-def restaurant_dashboard(request, unique_id: int):
-    restaurant = db.getRestaurantByID(unique_id)
+def restaurant_dashboard(request, restaurant_id: int):
+    """
+    Main page for restaurant view. Displays tables and their orders.
+    """
+    restaurant = db.getRestaurantByID(restaurant_id)
     tables = db.getTablesByRestaurant(restaurant.id)
 
     table_orders_pairs = []
@@ -119,6 +130,9 @@ def restaurant_dashboard(request, unique_id: int):
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 @restaurant_access_required
 def restaurant_products(request, unique_id: int):
+    """
+    Page where owners can add or remove items from the restaurant menu
+    """
     restaurant = db.getRestaurantByID(unique_id)
     
     menu = db.getRestaurantMenu(restaurant.id)
@@ -136,7 +150,10 @@ def restaurant_products(request, unique_id: int):
 @csrf_exempt
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 @restaurant_access_required
-def save_table_position(request, unique_id, table_id):
+def save_table_position(request, restaurant_id, table_id):
+    """
+    Function to save table position to the database.
+    """
     if request.method == 'POST':
         data = json.loads(request.body)
         position_x = data.get('x', 0)
@@ -152,17 +169,12 @@ def save_table_position(request, unique_id, table_id):
 
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 @restaurant_access_required
-def table_orders(request):
-    table_id = request.GET.get('table_id')
-    table = db.getTableByID(table_id)
-    orders = db.getOrdersByTableID(table_id)  # Assuming you have this function
-    return render(request, 'owners/table_orders.html', {'table': table, 'orders': orders})
-
-@cache_control(no_cache=True, must_revalidate=True, no_store=True)
-@restaurant_access_required
-def add_table(request, unique_id: int):
+def add_table(request, restaurant_id: int):
+    """
+    Function to add new table for a restaurant and saves it to the database.
+    """
     if request.method == 'POST':
-        restaurant = db.getRestaurantByID(unique_id)
+        restaurant = db.getRestaurantByID(restaurant_id)
         table = mod.Table(restaurant_id=restaurant.id, position_x=0, position_y=0)
         db.addTable(table)
         return JsonResponse({'status': 'success', 'table_id': table.id})
@@ -172,6 +184,9 @@ def add_table(request, unique_id: int):
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 @restaurant_access_required
 def delete_table(request, restaurant_id: int, table_id: int):
+    """
+    Function to delete table from the restaurant and database.
+    """
     if request.method == 'POST':
         table = db.getTableByID(table_id)
         # check if table belongs to this restaurant
@@ -180,51 +195,26 @@ def delete_table(request, restaurant_id: int, table_id: int):
             return JsonResponse({'status': 'success'})
     return JsonResponse({'status': 'failed'})
 
-@csrf_exempt
-@cache_control(no_cache=True, must_revalidate=True, no_store=True)
-@restaurant_access_required
-def update_table_position(request, unique_id: int):
-    if request.method == 'POST':
-        table_id = request.POST.get('table_id')
-        position_x = request.POST.get('position_x')
-        position_y = request.POST.get('position_y')
-        try:
-            db.updateTablePosition(int(table_id), int(position_x), int(position_y))
-            return JsonResponse({'status': 'success'})
-        except Exception as e:
-            return JsonResponse({'status': 'failed', 'error': str(e)})
-    return JsonResponse({'status': 'failed'})
-
-@cache_control(no_cache=True, must_revalidate=True, no_store=True)
-@restaurant_access_required
-def table_orders(request):
-    table_id = request.GET.get('table_id')
-    table = db.getTableByID(table_id)
-    orders = db.getOrdersByTableID(table_id)
-    return render(request, 'owners/table_orders.html', {'table': table, 'orders': orders})
-
-@csrf_exempt
-@cache_control(no_cache=True, must_revalidate=True, no_store=True)
-@restaurant_access_required
-def mark_order_finished(request):
-    if request.method == 'POST':
-        order_id = request.POST.get('order_id')
-        # db.markOrderAsFinished(order_id)
-        print("Mark order finished")
-        return JsonResponse({'status': 'success'})
-    return JsonResponse({'status': 'failed'})
-
 def customers_view(request):
     context = {}
     return render(request, 'owners/customers.html', context)
 
-def mark_item_prepared(request, item_id, order_id):
+@restaurant_access_required
+def mark_item_prepared(request, restaurant_id:int, item_id:int, order_id:int):
+    """
+    Function to mark item from customer order as prepared. When all items in order are prepared
+    the order can be delivered.
+    """
     if request.method == "POST":
         success = db.markItemAsPrepared(item_id, order_id)
         return JsonResponse({'success': success})
     return JsonResponse({'success': False}, status=400)
 
-def mark_order_prepared(request, order_id):
+@restaurant_access_required
+def mark_order_prepared(request, restaurant_id:int, order_id:int):
+    """
+    Function to mark all elements in customer order as prepared. After it the order can be delivered.
+    """
     if request.method == "POST":
         orderItems = db.getItemsByOrderID(order_id)
         success = True
@@ -233,25 +223,21 @@ def mark_order_prepared(request, order_id):
         return JsonResponse({'success': success})
     return JsonResponse({'success': False}, status=400)
 
-def mark_order_delivered(request, order_id):
+@restaurant_access_required
+def mark_order_delivered(request, restaurant_id:int, order_id:int):
+    """
+    Function to mark order as delivered. This is a final step of customer order after which the order is labeled as FINISHED.
+    """
     if request.method == "POST":
         success = db.markOrderAsDelivered(order_id)
         return JsonResponse({'success': success})
     return JsonResponse({'success': False}, status=400)
 
-def get_order_details(request, table_id, unique_id=None):
-    order_details = db.getOrdersByTableID(table_id)
-    if order_details:
-        print(order_details)  # Add this line to debug
-        return JsonResponse(order_details.to_dict(), safe=False)
-    else:
-        return JsonResponse({'error': 'No active order found for this table'}, status=404)
-    
-
+@restaurant_access_required
 def get_items_by_order_id(request, restaurant_id, order_id):
-    # ta funkcija je zato, da ga kliče funkcija v js in dobi order iteme ne da bi refreshal
-    # stran. vrne tudi item.name, namesto item_id
-    # restuarant_id will be later used just for error logging (checking the system)
+    """
+    Function to get all items for the given order.
+    """
     if request.method == "GET":
         items = db.getItemsByOrderID(order_id) 
         items_data = [
@@ -265,8 +251,12 @@ def get_items_by_order_id(request, restaurant_id, order_id):
         return JsonResponse({'items': items_data})
     else:
         return JsonResponse({'error': 'Invalid request method'}, status=405)
-    
+
+@restaurant_access_required
 def remove_menu_items(request, restaurant_id):
+    """
+    Function to remove the item from restaurant menu. It does not remove the item from database, just its relation to the restaurant menu.
+    """
     if request.method == 'POST':
         data = json.loads(request.body)
         success = True
@@ -275,7 +265,12 @@ def remove_menu_items(request, restaurant_id):
         return JsonResponse({'success': success})
     return JsonResponse({'success': False})
 
+@restaurant_access_required
 def add_menu_item(request, restaurant_id):
+    """
+    Function to add a new item to restaurant menu. First the new item is created and added to the database, then it is mapped to restaurant menu
+    to indicate that this item belongs on the menu.
+    """
     if request.method == 'POST':
         data = json.loads(request.body)
         name = data["name"]
@@ -290,7 +285,11 @@ def add_menu_item(request, restaurant_id):
 from data.model import Restaurant
 from django.http import Http404
 
+@restaurant_access_required
 def settings_view(request, restaurant_id):
+    """
+    Settings page for owner profile.
+    """
     try:
         restaurant = Restaurant.objects.get(id=restaurant_id)
     except Restaurant.DoesNotExist:
@@ -305,6 +304,9 @@ import qrcode
 from io import BytesIO
 
 def generate_qr_code(request, table_id):
+    """
+    Page with the QR code for given table, so that users can scan it and order.
+    """
     qr = qrcode.QRCode(
         version=1,  # controls the size of the QR Code, higher value means bigger size
         error_correction=qrcode.constants.ERROR_CORRECT_L,  # controls the error correction used for the QR Code
