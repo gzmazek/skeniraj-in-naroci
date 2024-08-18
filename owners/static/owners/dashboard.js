@@ -8,6 +8,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const closePopup = document.getElementById('closePopup');
   const popupContent = document.getElementById('popupContent');
   const restaurantId = tableContainer.getAttribute("data-restaurant-id");
+  const openTableId = localStorage.getItem("openTableId");
 
   let isEditMode = false;
 
@@ -24,6 +25,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Add classes based on the table's order status
     if (orders.length > 0) {
+        console.log(orders[0].status)
         if (orders[0].status === "PREPARED") {
             tableItem.classList.add("prepared");
         } else {
@@ -51,17 +53,34 @@ document.addEventListener("DOMContentLoaded", function () {
     tableContainer.appendChild(tableItem);
 });
 
+console.log(openTableId);
+
+if (openTableId) {
+    console.log(`Reopening popup for table: ${openTableId}`);
+    const tableElement = document.querySelector('[data-table-id="2"]');
+    console.log(`Table element found: ${tableElement !== null}`);
+    if (tableElement) {
+        console.log("Calling showPopup for the table element.");
+        showPopup({ currentTarget: tableElement });
+    }
+    // Clear the localStorage after using it
+    localStorage.removeItem("openTableId");
+}
+
+
   // Event Listeners
   editModeToggle.addEventListener("click", toggleEditMode);
   addTable.addEventListener("click", addNewTable);
   closePopup.addEventListener("click", () => {
       console.log("Close popup clicked."); // Debugging line
       popup.style.display = 'none';
+      // window.location.reload(); 
   });
   window.addEventListener("click", (event) => {
       if (event.target == popup) {
           console.log("Outside popup clicked."); // Debugging line
           popup.style.display = 'none';
+          // window.location.reload(); 
       }
   });
 
@@ -325,6 +344,9 @@ document.addEventListener("DOMContentLoaded", function () {
             const itemId = this.getAttribute("data-item-id");
             const orderId = this.getAttribute("data-order-id");
             const tableId = this.getAttribute("data-table-id");
+
+            localStorage.setItem("openTableId", tableId);
+
             fetch(`/restaurant/${restaurantId}/mark_item_prepared/${orderId}/${itemId}/`, {
                 method: "POST",
                 headers: {
@@ -335,7 +357,7 @@ document.addEventListener("DOMContentLoaded", function () {
             .then(data => {
                 if (data.success) {
                     console.log(`Item marked as prepared: ${itemId}`); // Debugging line
-                    showPopup({ currentTarget: document.querySelector(`[data-table-id="${tableId}"]`) });
+                    window.location.reload();
                 } else {
                     console.error("Error marking item as prepared");
                 }
@@ -348,6 +370,9 @@ document.addEventListener("DOMContentLoaded", function () {
         button.addEventListener("click", function () {
             const orderId = this.getAttribute("data-order-id");
             const tableId = this.getAttribute("data-table-id");
+
+            localStorage.setItem("openTableId", tableId);
+
             fetch(`/restaurant/${restaurantId}/mark_order_prepared/${orderId}/`, {
                 method: "POST",
                 headers: {
@@ -358,7 +383,7 @@ document.addEventListener("DOMContentLoaded", function () {
             .then((data) => {
                 if (data.success) {
                     console.log(`Order marked as prepared for order: ${orderId}`); // Debugging line
-                    showPopup({ currentTarget: document.querySelector(`[data-table-id="${tableId}"]`) });
+                    window.location.reload();  
                 } else {
                     console.error("Error marking order as prepared");
                 }

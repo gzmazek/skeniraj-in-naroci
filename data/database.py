@@ -490,11 +490,29 @@ def getItemNameByID(item_id: int) -> str:
 def markItemAsPrepared(item_id, order_id):
     """
     Marks a specific order item as prepared in the database.
+    If all items in the order are prepared, marks the entire order as prepared.
     """
     try:
         with connection.cursor() as cursor:
+            # Mark the specific item as prepared
             cmd = "UPDATE OrderItem SET status = 'prepared' WHERE item_id = %s AND customer_order_id = %s"
             cursor.execute(cmd, [item_id, order_id])
+
+            # Check if all items in this order are now prepared
+            check_cmd = """
+            SELECT COUNT(*) 
+            FROM OrderItem 
+            WHERE customer_order_id = %s AND status != 'prepared'
+            """
+            cursor.execute(check_cmd, [order_id])
+            not_prepared_count = cursor.fetchone()[0]
+
+            if not_prepared_count == 0:
+                # If all items are prepared, update the order status to 'PREPARED'
+                update_order_cmd = "UPDATE CustomerOrder SET status = 'PREPARED' WHERE id = %s"
+                cursor.execute(update_order_cmd, [order_id])
+
+            connection.commit()  # Commit all changes to the database
         return True
     except Exception as e:
         print(f"Error marking item as prepared: {e}")
