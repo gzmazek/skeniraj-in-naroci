@@ -329,3 +329,21 @@ def generate_qr_code(request, table_id):
     # Return the image as an HTTP response
     return HttpResponse(img_io, content_type='image/png')
 
+def revive_order(request, restaurant_id, table_id):
+    try:
+        # Find the last finished order by table_id
+        last_finished_order = db.get_last_finished_order_by_table_id(table_id)
+        
+        if last_finished_order is not None:
+            # Reset the status of the last finished order
+            db.update_order_status(last_finished_order['id'], 'IN PROGRESS')
+
+            # Reset the status of all items in the order
+            db.update_order_items_status(last_finished_order['id'], 'not prepared')
+
+            return JsonResponse({'success': True})
+        else:
+            return JsonResponse({'success': False, 'message': 'No finished order found for this table.'})
+    except Exception as e:
+        print(f"Error reviving order: {e}")
+        return JsonResponse({'success': False, 'error': str(e)})

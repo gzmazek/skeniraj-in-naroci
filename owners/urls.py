@@ -22,5 +22,7 @@ urlpatterns = [
     path('<int:restaurant_id>/mark_order_delivered/<int:order_id>/', views.mark_order_delivered, name='mark_order_delivered'),
 
     path('<int:restaurant_id>/addMenuItem/', views.add_menu_item, name='add_menu_item'),
-    path('<int:restaurant_id>/removeMenuItems/', views.remove_menu_items, name='remove_menu_items')
+    path('<int:restaurant_id>/removeMenuItems/', views.remove_menu_items, name='remove_menu_items'),
+
+    path('<int:restaurant_id>/revive_order/<int:table_id>/', views.revive_order, name='revive_order')
 ]

@@ -63,10 +63,8 @@ if (openTableId) {
         console.log("Calling showPopup for the table element.");
         showPopup({ currentTarget: tableElement });
     }
-    // Clear the localStorage after using it
     localStorage.removeItem("openTableId");
 }
-
 
   // Event Listeners
   editModeToggle.addEventListener("click", toggleEditMode);
@@ -170,6 +168,7 @@ if (openTableId) {
             <hr>
             <div class="d-flex justify-content-between">
             <button class="qr-code-table btn btn-primary" data-table-id="${tableId}">QR code</button>
+            <button class="revive-order btn btn-warning" data-table-id="${tableId}">Revive Last Order</button>
             <button class="delete-table btn btn-secondary" data-table-id="${tableId}">Delete table</button>
             </div>
         `;
@@ -412,6 +411,32 @@ if (openTableId) {
             });
         });
     });
+
+        // Revive last order button functionality
+    document.querySelectorAll(".revive-order").forEach((button) => {
+        button.addEventListener("click", function () {
+            const tableId = this.getAttribute("data-table-id");
+
+            localStorage.setItem("openTableId", tableId);
+
+            fetch(`/restaurant/${restaurantId}/revive_order/${tableId}/`, {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": getCookie("csrftoken"),
+                },
+            })
+            .then((response) => response.json())
+            .then((data) => {
+                if (data.success) {
+                    console.log(`Order revived for table: ${tableId}`); // Debugging line
+                    window.location.reload();
+                } else {
+                    console.error("Error reviving order");
+                }
+            });
+        });
+    });
+
 }
 
 });

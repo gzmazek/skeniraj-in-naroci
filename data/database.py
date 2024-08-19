@@ -572,3 +572,65 @@ def removeItemFromRestaurantMenu(item_id:int, restaurant_id:int):
         print(f"Error deleting item from restaurant menu: {e}")
         return False
 
+
+def get_last_finished_order_by_table_id(table_id):
+    """
+    Finds the last finished order associated with a given table.
+    """
+    try:
+        with connection.cursor() as cursor:
+            cmd = """
+            SELECT id, status, date
+            FROM CustomerOrder
+            WHERE table_id = %s AND status = 'FINISHED'
+            ORDER BY date DESC
+            LIMIT 1
+            """
+            cursor.execute(cmd, [table_id])
+            order = cursor.fetchone()
+            
+            if order is not None:
+                return {
+                    'id': order[0],
+                    'status': order[1],
+                    'date': order[2]
+                }
+            else:
+                return None
+    except Exception as e:
+        print(f"Error fetching last finished order: {e}")
+        return None
+
+def update_order_status(order_id, status):
+    """
+    Updates the status of a specific order in the database.
+    """
+    try:
+        with connection.cursor() as cursor:
+            cmd = """
+            UPDATE CustomerOrder 
+            SET status = %s 
+            WHERE id = %s
+            """
+            cursor.execute(cmd, [status, order_id])
+        return True
+    except Exception as e:
+        print(f"Error updating order status: {e}")
+        return False
+
+def update_order_items_status(order_id, status):
+    """
+    Updates the status of all items in a specific order in the database.
+    """
+    try:
+        with connection.cursor() as cursor:
+            cmd = """
+            UPDATE OrderItem 
+            SET status = %s 
+            WHERE customer_order_id = %s
+            """
+            cursor.execute(cmd, [status, order_id])
+        return True
+    except Exception as e:
+        print(f"Error updating order items status: {e}")
+        return False
