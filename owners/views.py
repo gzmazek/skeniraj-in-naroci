@@ -339,7 +339,7 @@ def revive_order(request, restaurant_id, table_id):
             db.update_order_status(last_finished_order['id'], 'IN PROGRESS')
 
             # Reset the status of all items in the order
-            db.update_order_items_status(last_finished_order['id'], 'not prepared')
+            db.update_order_items_status(last_finished_order['id'], 'pending')
 
             return JsonResponse({'success': True})
         else:
