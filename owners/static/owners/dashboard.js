@@ -60,7 +60,7 @@ if (openTableId) {
     const tableElement = document.querySelector(`[data-table-id="${openTableId}"]`);
     console.log(`Table element found: ${tableElement !== null}`);
     if (tableElement) {
-        console.log("Calling showPopup for the table element.");
+        console.log(`Calling showPopup for the table element.`);
         showPopup({ currentTarget: tableElement });
     }
     localStorage.removeItem("openTableId");
