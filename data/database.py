@@ -2,7 +2,7 @@ import psycopg2
 import psycopg2.extras
 from typing import List
 
-from .model import User, Restaurant, CustomerOrder, OrderItem, Order, MenuItem, Table, Item
+from .model import User, Restaurant, CustomerOrder, OrderItem, Order, MenuItem, Table, Item, Kitchen
 
 from .auth_public import db, host, user, password
 
@@ -572,7 +572,6 @@ def removeItemFromRestaurantMenu(item_id:int, restaurant_id:int):
         print(f"Error deleting item from restaurant menu: {e}")
         return False
 
-
 def get_last_finished_order_by_table_id(table_id):
     """
     Finds the last finished order associated with a given table.
@@ -634,3 +633,86 @@ def update_order_items_status(order_id, status):
     except Exception as e:
         print(f"Error updating order items status: {e}")
         return False
+
+
+################### KITCHEN FUNCTIONS ###################
+def get_kitchens_by_restaurant_id(restaurant_id):
+    """
+    Retrieves all kitchens associated with a restaurant.
+    """
+    with connection.cursor() as cursor:
+        cmd = "SELECT id, restaurant_id, name FROM kitchen WHERE restaurant_id = %s"
+        cursor.execute(cmd, [restaurant_id])
+        kitchens = cursor.fetchall()
+        return [Kitchen(id=k[0], restaurant_id=k[1], name=k[2]) for k in kitchens]
+
+def add_kitchen(restaurant_id, name):
+    """
+    Adds a new kitchen to a restaurant.
+    """
+    try:
+        with connection.cursor() as cursor:
+            cmd = "INSERT INTO kitchen (restaurant_id, name) VALUES (%s, %s) RETURNING id"
+            cursor.execute(cmd, [restaurant_id, name])
+            kitchen_id = cursor.fetchone()[0]
+            return kitchen_id
+    except Exception as e:
+        print(f"Error adding kitchen: {e}")
+        return None
+
+def get_items_not_in_kitchen(restaurant_id, kitchen_id):
+    """
+    Retrieves items that are in the restaurant's menu but not yet associated with the given kitchen.
+    """
+    with connection.cursor() as cursor:
+        cmd = """
+        SELECT i.id, i.name
+        FROM Item i
+        JOIN RestaurantMenu rm ON i.id = rm.item_id
+        WHERE rm.restaurant_id = %s
+        AND i.id NOT IN (
+            SELECT item_id FROM kitchenitem WHERE kitchen_id = %s
+        )
+        """
+        cursor.execute(cmd, [restaurant_id, kitchen_id])
+        items = cursor.fetchall()
+        return [{'id': item[0], 'name': item[1]} for item in items]
+
+def add_item_to_kitchen(kitchen_id, item_id):
+    """
+    Adds an item to a kitchen.
+    """
+    try:
+        with connection.cursor() as cursor:
+            cmd = "INSERT INTO kitchenitem (kitchen_id, item_id) VALUES (%s, %s)"
+            cursor.execute(cmd, [kitchen_id, item_id])
+        return True
+    except Exception as e:
+        print(f"Error adding item to kitchen: {e}")
+        return False
+    
+def remove_item_from_kitchen(kitchen_id, item_id):
+    """
+    Removes an item from a kitchen.
+    """
+    try:
+        with connection.cursor() as cursor:
+            cmd = "DELETE FROM kitchenitem WHERE kitchen_id = %s AND item_id = %s"
+            cursor.execute(cmd, [kitchen_id, item_id])
+        return True
+    except Exception as e:
+        print(f"Error removing item from kitchen: {e}")
+        return False
+
+def get_items_by_kitchen_id(kitchen_id):
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            SELECT i.id, i.name
+            FROM kitchenitem ki
+            JOIN item i ON ki.item_id = i.id
+            WHERE ki.kitchen_id = %s
+        """, [kitchen_id])
+        items = cursor.fetchall()
+    return [Item(id=row[0], name=row[1]) for row in items]
+
+#########################################################

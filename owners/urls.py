@@ -24,5 +24,13 @@ urlpatterns = [
     path('<int:restaurant_id>/addMenuItem/', views.add_menu_item, name='add_menu_item'),
     path('<int:restaurant_id>/removeMenuItems/', views.remove_menu_items, name='remove_menu_items'),
 
-    path('<int:restaurant_id>/revive_order/<int:table_id>/', views.revive_order, name='revive_order')
+    path('<int:restaurant_id>/revive_order/<int:table_id>/', views.revive_order, name='revive_order'),
+
+    path('<int:restaurant_id>/kitchen_settings/', views.kitchen_settings, name='kitchen_settings'),
+    path('<int:restaurant_id>/add_kitchen/', views.add_kitchen, name='add_kitchen'),
+    path('<int:restaurant_id>/get_items_for_kitchen/<int:kitchen_id>/', views.get_items_for_kitchen, name='get_items_for_kitchen'),
+    
+    path('restaurant/<int:restaurant_id>/kitchen/<int:kitchen_id>/add_item/', views.add_item_to_kitchen, name='add_item_to_kitchen'),
+    path('restaurant/<int:restaurant_id>/kitchen/<int:kitchen_id>/delete_item/<int:item_id>/', views.delete_item_from_kitchen, name='delete_item_from_kitchen'),
+
 ]

@@ -339,7 +339,7 @@ def revive_order(request, restaurant_id, table_id):
             db.update_order_status(last_finished_order['id'], 'IN PROGRESS')
 
             # Reset the status of all items in the order
-            db.update_order_items_status(last_finished_order['id'], 'not prepared')
+            db.update_order_items_status(last_finished_order['id'], 'pending')
 
             return JsonResponse({'success': True})
         else:
@@ -347,3 +347,54 @@ def revive_order(request, restaurant_id, table_id):
     except Exception as e:
         print(f"Error reviving order: {e}")
         return JsonResponse({'success': False, 'error': str(e)})
+    
+################### KITCHEN FUNCTIONS ###################
+
+def kitchen_settings(request, restaurant_id):
+    restaurant = db.getRestaurantByID(restaurant_id)
+    kitchens = db.get_kitchens_by_restaurant_id(restaurant_id)
+    
+    kitchen_items = {}
+    items_not_in_kitchen = {}
+    
+    for kitchen in kitchens:
+        items = db.get_items_by_kitchen_id(kitchen.id)
+        kitchen_items[kitchen.id] = items
+
+        items_not_in_kitchen[kitchen.id] = db.get_items_not_in_kitchen(restaurant_id, kitchen.id)
+    
+    context = {
+        'restaurant': restaurant,
+        'kitchens': kitchens,
+        'kitchen_items': kitchen_items,
+        'items_not_in_kitchen': items_not_in_kitchen,
+    }
+    print(context)
+    return render(request, 'owners/kitchen_settings.html', context)
+
+
+def add_kitchen(request, restaurant_id):
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        kitchen_id = db.add_kitchen(restaurant_id, name)
+        if kitchen_id:
+            return redirect('kitchen_settings', restaurant_id=restaurant_id)
+    return redirect('kitchen_settings', restaurant_id=restaurant_id)
+
+def get_items_for_kitchen(request, restaurant_id, kitchen_id):
+    items = db.get_items_not_in_kitchen(restaurant_id, kitchen_id)
+    return JsonResponse({'items': items})
+
+def add_item_to_kitchen(request, restaurant_id, kitchen_id):
+    if request.method == 'POST':
+        item_id = request.POST.get('item_id')
+        db.add_item_to_kitchen(kitchen_id, item_id)
+    return redirect('kitchen_settings', restaurant_id=restaurant_id)
+
+def delete_item_from_kitchen(request, restaurant_id, kitchen_id, item_id):
+    if request.method == 'POST':
+        db.remove_item_from_kitchen(kitchen_id, item_id)
+    return redirect('kitchen_settings', restaurant_id=restaurant_id)
+
+
+#########################################################

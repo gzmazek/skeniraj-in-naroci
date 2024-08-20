@@ -57,7 +57,7 @@ console.log(openTableId);
 
 if (openTableId) {
     console.log(`Reopening popup for table: ${openTableId}`);
-    const tableElement = document.querySelector('[data-table-id="2"]');
+    const tableElement = document.querySelector(`[data-table-id="${openTableId}"]`);
     console.log(`Table element found: ${tableElement !== null}`);
     if (tableElement) {
         console.log("Calling showPopup for the table element.");
