@@ -30,7 +30,13 @@ urlpatterns = [
     path('<int:restaurant_id>/add_kitchen/', views.add_kitchen, name='add_kitchen'),
     path('<int:restaurant_id>/get_items_for_kitchen/<int:kitchen_id>/', views.get_items_for_kitchen, name='get_items_for_kitchen'),
     
-    path('restaurant/<int:restaurant_id>/kitchen/<int:kitchen_id>/add_item/', views.add_item_to_kitchen, name='add_item_to_kitchen'),
-    path('restaurant/<int:restaurant_id>/kitchen/<int:kitchen_id>/delete_item/<int:item_id>/', views.delete_item_from_kitchen, name='delete_item_from_kitchen'),
+    path('<int:restaurant_id>/kitchen/<int:kitchen_id>/add_item/', views.add_item_to_kitchen, name='add_item_to_kitchen'),
+    path('<int:restaurant_id>/kitchen/<int:kitchen_id>/delete_item/<int:item_id>/', views.delete_item_from_kitchen, name='delete_item_from_kitchen'),
+
+    path('<int:restaurant_id>/get_kitchen_items/<int:kitchen_id>/', views.get_kitchen_items, name='get_kitchen_items'),
+    path('<int:restaurant_id>/get_items_not_in_kitchen/<int:kitchen_id>/', views.get_items_not_in_kitchen, name='get_items_not_in_kitchen'),
+
+    path('<int:restaurant_id>/delete_kitchen/<int:kitchen_id>/', views.delete_kitchen, name='delete_kitchen'),
+    path('<int:restaurant_id>/delete_item_from_kitchen/<int:kitchen_id>/<int:item_id>/', views.delete_item_from_kitchen, name='delete_item_from_kitchen'),
 
 ]

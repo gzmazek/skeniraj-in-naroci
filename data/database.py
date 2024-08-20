@@ -663,6 +663,7 @@ def add_kitchen(restaurant_id, name):
 def get_items_not_in_kitchen(restaurant_id, kitchen_id):
     """
     Retrieves items that are in the restaurant's menu but not yet associated with the given kitchen.
+    Returns a list of Item objects.
     """
     with connection.cursor() as cursor:
         cmd = """
@@ -676,7 +677,9 @@ def get_items_not_in_kitchen(restaurant_id, kitchen_id):
         """
         cursor.execute(cmd, [restaurant_id, kitchen_id])
         items = cursor.fetchall()
-        return [{'id': item[0], 'name': item[1]} for item in items]
+
+        # Convert the result into a list of Item objects
+        return [Item(id=item[0], name=item[1]) for item in items]
 
 def add_item_to_kitchen(kitchen_id, item_id):
     """
@@ -714,5 +717,21 @@ def get_items_by_kitchen_id(kitchen_id):
         """, [kitchen_id])
         items = cursor.fetchall()
     return [Item(id=row[0], name=row[1]) for row in items]
+
+def delete_kitchen_by_id(kitchen_id):
+    """
+    Deletes a kitchen and its associated items by kitchen ID.
+    """
+    with connection.cursor() as cursor:
+        try:
+            cursor.execute("DELETE FROM kitchenitem WHERE kitchen_id = %s", [kitchen_id])
+            cursor.execute("DELETE FROM kitchen WHERE id = %s", [kitchen_id])
+            connection.commit() 
+            return True
+        except Exception as e:
+            print(f"Error deleting kitchen: {e}")
+            connection.rollback() 
+            # .rollback, da ne samo dela  deleta, recimo da ne samo itemov, kitchena pa potem ne bi moglo
+            return False
 
 #########################################################

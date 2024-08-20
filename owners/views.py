@@ -372,6 +372,19 @@ def kitchen_settings(request, restaurant_id):
     print(context)
     return render(request, 'owners/kitchen_settings.html', context)
 
+def get_kitchen_items(request, restaurant_id, kitchen_id):
+    items = db.get_items_by_kitchen_id(kitchen_id)
+    items_data = [{'id': item.id, 'name': item.name} for item in items]
+    return JsonResponse({'items': items_data})
+
+def get_items_not_in_kitchen(request, restaurant_id, kitchen_id):
+    items = db.get_items_not_in_kitchen(restaurant_id, kitchen_id)
+    items_data = [{'id': item.id, 'name': item.name} for item in items]
+    return JsonResponse({'items': items_data})
+
+def get_kitchens_by_restaurant(restaurant_id: int):
+    # vsi kitcheni
+    return db.get_kitchens_by_restaurant_id(restaurant_id)
 
 def add_kitchen(request, restaurant_id):
     if request.method == 'POST':
@@ -393,8 +406,20 @@ def add_item_to_kitchen(request, restaurant_id, kitchen_id):
 
 def delete_item_from_kitchen(request, restaurant_id, kitchen_id, item_id):
     if request.method == 'POST':
-        db.remove_item_from_kitchen(kitchen_id, item_id)
+        base = db.remove_item_from_kitchen(kitchen_id, item_id)
+        print(base)
     return redirect('kitchen_settings', restaurant_id=restaurant_id)
+
+def delete_kitchen(request, restaurant_id, kitchen_id):
+    if request.method == "POST":
+        # Assuming you have a function in db to delete a kitchen by its ID
+        success = db.delete_kitchen_by_id(kitchen_id)
+        if success:
+            return JsonResponse({'success': True})
+        else:
+            return JsonResponse({'success': False, 'error': 'Failed to delete kitchen'}, status=500)
+    else:
+        return JsonResponse({'error': 'Invalid request method'}, status=405)
 
 
 #########################################################
