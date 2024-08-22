@@ -1,0 +1,178 @@
+{% extends 'owners/base.html' %}
+
+{% block title %}Kitchen View{% endblock %}
+
+{% block restaurant %} {{ restaurant.name }} {% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center mb-3 border-bottom">
+    <h1 class="h2">Kitchen View</h1>
+</div>
+
+<!-- Dropdown to select a kitchen -->
+<div class="mb-3">
+    <label for="kitchenSelect" class="form-label">Select Kitchen:</label>
+    <select id="kitchenSelect" class="form-select" onchange="filterKitchen()">
+        <option value="" {% if not selected_kitchen %}selected{% endif %}>All Kitchens</option>
+        {% for kitchen in kitchens %}
+            <option value="{{ kitchen.id }}" {% if kitchen.id == selected_kitchen %}selected{% endif %}>
+                {{ kitchen.name }}
+            </option>
+        {% endfor %}
+    </select>
+</div>
+
+<div id="kitchenContainer">
+    <!-- JavaScript will dynamically load the kitchens and their items here -->
+</div>
+
+{% endblock %}
+
+{% block extra_styles %}
+<style>
+    .status-widget {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background-color: gray; /* Default color */
+        margin-right: 8px;
+        vertical-align: middle; /* Ensures vertical alignment in the center */
+    }
+    .status-prepared {
+        background-color: green;
+    }
+    .status-pending {
+        background-color: orange;
+    }
+    .status-canceled {
+        background-color: red;
+    }
+    .item-row {
+        display: flex;
+        align-items: center;
+        padding: 5px 10px;
+        border-bottom: 1px solid #ddd;
+    }
+    .item-column {
+        padding: 5px;
+        text-align: center;
+    }
+    .item-column.status {
+        width: 25px;
+        text-align: left;
+        flex-shrink: 0;
+    }
+    .item-column.quantity {
+        flex-basis: 40px;
+        text-align: center;
+    }
+    .item-column.name {
+        flex-grow: 1;
+        text-align: left;
+    }
+    .item-column.order {
+        flex-basis: 80px;
+        text-align: right;
+    }
+    .item-column.action {
+        flex-basis: 150px;
+        text-align: right;
+    }
+</style>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function filterKitchen() {
+    const selectedKitchenId = document.getElementById('kitchenSelect').value;
+    const restaurantId = {{ restaurant.id }};
+    
+    let url = `/restaurant/${restaurantId}/kitchen_view/`;
+    if (selectedKitchenId) {
+        url += `${selectedKitchenId}/`;
+    }
+
+    window.location.href = url;
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+    const kitchens = {{ kitchen_items_pairs|safe }};  // Load the kitchens and their items from the context
+
+    function loadKitchens(kitchens) {
+        const kitchenContainer = document.getElementById('kitchenContainer');
+        kitchenContainer.innerHTML = '';
+
+        kitchens.forEach(pair => {
+            const kitchen = pair.kitchen;
+            const items = pair.items;
+
+            const kitchenDiv = document.createElement('div');
+            kitchenDiv.classList.add('mb-4');
+            kitchenDiv.innerHTML = `
+                <h4>${kitchen.name}</h4>
+                <ul class="list-group" id="kitchen-items-list-${kitchen.id}">
+                    ${items.length > 0 ? items.map(item => `
+                        <li class="list-group-item item-row">
+                            <span class="item-column status ${getStatusClass(item.status)}"></span>
+                            <span class="item-column quantity">${item.quantity}</span>
+                            <span class="item-column name">${item.item_name}</span>
+                            <span class="item-column order">Order: ${item.order_id}</span>
+                            ${item.status !== 'prepared' ? `
+                                <span class="item-column action">
+                                    <button class="btn btn-sm btn-primary mark-item-prepared" data-item-id="${item.id}" data-order-id="${item.order_id}">Mark as Prepared</button>
+                                </span>` : `
+                                <span class="item-column action"></span>`
+                            }
+                        </li>`).join('') : '<li class="list-group-item">No items in this kitchen.</li>'
+                    }
+                </ul>
+            `;
+            kitchenContainer.appendChild(kitchenDiv);
+        });
+    }
+
+    function getStatusClass(status) {
+        switch(status) {
+            case 'prepared':
+                return 'status-prepared';
+            case 'pending':
+                return 'status-pending';
+            case 'canceled':
+                return 'status-canceled';
+            default:
+                return '';
+        }
+    }
+
+    // Initial load of kitchens
+    loadKitchens(kitchens);
+
+    // Event delegation for marking items as prepared
+    document.getElementById('kitchenContainer').addEventListener('click', function (event) {
+        if (event.target.classList.contains('mark-item-prepared')) {
+            const itemId = event.target.getAttribute('data-item-id');
+            const orderId = event.target.getAttribute('data-order-id');
+            const restaurantId = {{ restaurant.id }};
+
+            fetch(`/restaurant/${restaurantId}/mark_item_prepared/${orderId}/${itemId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    console.log(`Item marked as prepared: ${itemId}`);
+                    location.reload();  // Reload the page to update the status
+                } else {
+                    console.error('Error marking item as prepared');
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+    });
+});
+</script>
+{% endblock %}

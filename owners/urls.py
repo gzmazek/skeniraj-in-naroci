@@ -39,4 +39,6 @@ urlpatterns = [
     path('<int:restaurant_id>/delete_kitchen/<int:kitchen_id>/', views.delete_kitchen, name='delete_kitchen'),
     path('<int:restaurant_id>/delete_item_from_kitchen/<int:kitchen_id>/<int:item_id>/', views.delete_item_from_kitchen, name='delete_item_from_kitchen'),
 
+    path('<int:restaurant_id>/kitchen_view/', views.kitchen_view, name='kitchen_view'),
+    path('<int:restaurant_id>/kitchen_view/<int:kitchen_id>/', views.kitchen_view, name='kitchen_view_filtered'),
 ]

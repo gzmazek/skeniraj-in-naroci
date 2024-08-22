@@ -59,9 +59,9 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link d-flex align-items-center gap-2 {% active request 'customers_view' %}" href="{% url 'customers_view' %}">
-                            <svg class="bi"><use xlink:href="#cart"/></svg>
-                            Customers
+                        <a class="nav-link d-flex align-items-center gap-2 {% active request 'kitchen_view' %}" href="{% url 'kitchen_view' restaurant.id %}">
+                            <svg class="bi"><use xlink:href="#grid"/></svg>
+                            Kitchen View
                         </a>
                     </li>
                     <li class="nav-item">

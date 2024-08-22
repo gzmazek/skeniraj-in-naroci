@@ -734,4 +734,52 @@ def delete_kitchen_by_id(kitchen_id):
             # .rollback, da ne samo dela  deleta, recimo da ne samo itemov, kitchena pa potem ne bi moglo
             return False
 
+######################################################### KITCHEN ID
+def get_kitchen_by_id(kitchen_id: int) -> Kitchen:
+    """
+    Retrieves a specific kitchen by its ID.
+
+    Args:
+        kitchen_id (int): The ID of the kitchen to retrieve.
+
+    Returns:
+        Kitchen: The Kitchen object if found, otherwise None.
+    """
+    with connection.cursor() as cursor:
+        cmd = "SELECT id, restaurant_id, name FROM kitchen WHERE id = %s"
+        cursor.execute(cmd, [kitchen_id])
+        kitchen = cursor.fetchone()
+        
+        if kitchen:
+            return Kitchen(id=kitchen[0], restaurant_id=kitchen[1], name=kitchen[2])
+        else:
+            return None
+
 #########################################################
+
+######################################################### KITCHEN VIEW, ta funkcija je za vsa naročila v enem kitchenu
+def get_ordered_items_by_kitchen_id(kitchen_id):
+    """
+    Retrieves ordered items associated with a given kitchen, including order details.
+    """
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            SELECT i.id, i.name, oi.customer_order_id, oi.quantity, oi.status
+            FROM kitchenitem ki
+            JOIN item i ON ki.item_id = i.id
+            JOIN orderitem oi ON i.id = oi.item_id
+            WHERE ki.kitchen_id = %s
+        """, [kitchen_id])
+        items = cursor.fetchall()
+
+    # Return a list of dictionaries with the relevant data
+    return [
+        {
+            'item_id': row[0],
+            'item_name': row[1],
+            'order_id': row[2],
+            'quantity': row[3],
+            'status': row[4],
+        }
+        for row in items
+    ]

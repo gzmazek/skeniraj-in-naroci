@@ -423,3 +423,55 @@ def delete_kitchen(request, restaurant_id, kitchen_id):
 
 
 #########################################################
+################### KITCHEN VIEW ##################
+def kitchen_view(request, restaurant_id: int, kitchen_id: int = None):
+    """
+    Kitchen view for a restaurant. Displays kitchens and their associated ordered items.
+    """
+    restaurant = db.getRestaurantByID(restaurant_id)  # Get the restaurant
+
+    # Fetch all kitchens for the dropdown
+    kitchens = db.get_kitchens_by_restaurant_id(restaurant_id)
+    
+    kitchen_items_pairs = []
+
+    if kitchen_id:
+        # If a specific kitchen is selected, filter by that kitchen
+        selected_kitchen = db.get_kitchen_by_id(kitchen_id)
+        if selected_kitchen:
+            items = db.get_ordered_items_by_kitchen_id(selected_kitchen.id)
+            kitchen_items_pairs.append({
+                'kitchen': {
+                    'id': selected_kitchen.id,
+                    'name': selected_kitchen.name,
+                },
+                'items': items
+            })
+    else:
+        # If no specific kitchen is selected, show all kitchens
+        for kitchen in kitchens:
+            items = db.get_ordered_items_by_kitchen_id(kitchen.id)
+            kitchen_items_pairs.append({
+                'kitchen': {
+                    'id': kitchen.id,
+                    'name': kitchen.name,
+                },
+                'items': items
+            })
+
+    # Convert the kitchen_items_pairs list to JSON format
+    kitchens_json = json.dumps(kitchen_items_pairs, ensure_ascii=False)
+
+    # Prepare the context for the template
+    context = {
+        'restaurant': restaurant,
+        'kitchens': kitchens,  # Pass the list of Kitchen objects for the dropdown
+        'kitchen_items_pairs': kitchens_json,  # Pass the serialized kitchen data to the template
+        'selected_kitchen': kitchen_id,  # Pass the selected kitchen ID if any
+    }
+
+    # Render the kitchen view template
+    return render(request, 'owners/kitchen_view.html', context)
+
+
+#########################################################
