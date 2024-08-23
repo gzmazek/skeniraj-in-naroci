@@ -473,5 +473,4 @@ def kitchen_view(request, restaurant_id: int, kitchen_id: int = None):
     # Render the kitchen view template
     return render(request, 'owners/kitchen_view.html', context)
 
-
 #########################################################

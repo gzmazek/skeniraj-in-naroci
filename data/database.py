@@ -775,7 +775,7 @@ def get_ordered_items_by_kitchen_id(kitchen_id):
     # Return a list of dictionaries with the relevant data
     return [
         {
-            'item_id': row[0],
+            'id': row[0],  # Ensure 'id' is returned as 'id' instead of 'item_id'
             'item_name': row[1],
             'order_id': row[2],
             'quantity': row[3],
