@@ -760,7 +760,7 @@ def get_kitchen_by_id(kitchen_id: int) -> Kitchen:
 ######################################################### KITCHEN VIEW, ta funkcija je za vsa naročila v enem kitchenu
 def get_ordered_items_by_kitchen_id(kitchen_id):
     """
-    Retrieves ordered items associated with a given kitchen, including order details.
+    Retrieves ordered items associated with a given kitchen, excluding delivered items.
     """
     with connection.cursor() as cursor:
         cursor.execute("""
@@ -768,14 +768,15 @@ def get_ordered_items_by_kitchen_id(kitchen_id):
             FROM kitchenitem ki
             JOIN item i ON ki.item_id = i.id
             JOIN orderitem oi ON i.id = oi.item_id
-            WHERE ki.kitchen_id = %s
+            JOIN customerorder co ON oi.customer_order_id = co.id
+            WHERE ki.kitchen_id = %s AND co.status != 'FINISHED'
         """, [kitchen_id])
         items = cursor.fetchall()
 
     # Return a list of dictionaries with the relevant data
     return [
         {
-            'id': row[0],  # Ensure 'id' is returned as 'id' instead of 'item_id'
+            'id': row[0],
             'item_name': row[1],
             'order_id': row[2],
             'quantity': row[3],
