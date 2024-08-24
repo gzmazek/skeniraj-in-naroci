@@ -1,3 +1,68 @@
+"""
+VIEWS.PY - TABLE OF CONTENTS
+============================
+
+1. IMPORTS
+--------------------------------
+- Django imports (render, redirect, HttpResponse, etc.)
+- Forms and Models
+- Logging setup
+
+2. AUTHENTICATION VIEWS
+--------------------------------
+- sign_in(request)
+- sign_out(request)
+
+3. PROFILE VIEWS
+--------------------------------
+- profile(request)
+
+4. DASHBOARD VIEWS
+--------------------------------
+- restaurant_dashboard(request, restaurant_id: int)
+- save_table_position(request, restaurant_id, table_id)
+- add_table(request, restaurant_id: int)
+- delete_table(request, restaurant_id: int, table_id)
+- generate_qr_code(request, table_id)
+
+5. MENU MANAGEMENT VIEWS
+--------------------------------
+- restaurant_products(request, unique_id: int)
+- remove_menu_items(request, restaurant_id)
+- add_menu_item(request, restaurant_id)
+- get_items_by_order_id(request, restaurant_id, order_id)
+
+6. ORDER MANAGEMENT VIEWS
+--------------------------------
+- mark_item_prepared(request, restaurant_id:int, item_id:int, order_id:int)
+- mark_order_prepared(request, restaurant_id:int, order_id:int)
+- mark_order_delivered(request, restaurant_id:int, order_id:int)
+- revive_order(request, restaurant_id, table_id)
+
+7. KITCHEN MANAGEMENT VIEWS
+--------------------------------
+- kitchen_settings(request, restaurant_id)
+- get_kitchen_items(request, restaurant_id, kitchen_id)
+- get_items_not_in_kitchen(request, restaurant_id, kitchen_id)
+- add_kitchen(request, restaurant_id)
+- get_items_for_kitchen(request, restaurant_id, kitchen_id)
+- add_item_to_kitchen(request, restaurant_id, kitchen_id)
+- delete_item_from_kitchen(request, restaurant_id, kitchen_id, item_id)
+- delete_kitchen(request, restaurant_id, kitchen_id)
+
+8. KITCHEN VIEW
+--------------------------------
+- kitchen_view(request, restaurant_id: int, kitchen_id: int = None)
+
+9. ANALYTICS VIEWS
+--------------------------------
+- analytics_view(request, restaurant_id)
+
+10. QR GENERATION
+--------------------------------
+- generate_qr_code(request, table_id)
+"""
+
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from users.forms import SignInForm
@@ -13,41 +78,21 @@ import data.model as mod
 from django.views.decorators.csrf import csrf_exempt
 import json
 
+from data.model import Restaurant
+from django.http import Http404
 
 from owners.decorators import owner_required, restaurant_access_required
+
+import qrcode
+from io import BytesIO
 
 import logging
 
 logger = logging.getLogger(__name__)
 
-# Create your views here.
-
-@cache_control(no_cache=True, must_revalidate=True, no_store=True) # Prevents from browser caching page and hence rendering it when user is already logged out
-@owner_required
-def profile(request):
-    """
-    Profile page of owner.
-    """
-    owner_id = request.session['owner_id'][0]
-    print(owner_id)
-    if request.method == 'POST':
-        form = AddRestaurantForm(request.POST)
-        print("Request: POST")
-        if form.is_valid():
-            print("Valid form")
-            name = form.cleaned_data['name']
-            address = form.cleaned_data['address']
-            rest = db.addRestaurant(mod.Restaurant(name=name, location=address, owner_id=owner_id))
-
-            # Update list of allowed restaurants
-            list = request.session['owner_id'][1]
-            list.append(rest.id)
-            request.session['owner_id'] = (owner_id, list)
-    else:
-        form = AddRestaurantForm()
-
-    restaurants = db.getRestaurantsOfOwner(owner_id)
-    return render(request, 'owners/profile.html', {'restaurants': restaurants,'form': form})
+#########################################################
+#              AUTHENTICATION FUNCTIONS                 #
+#########################################################
 
 def sign_in(request):
     """
@@ -99,6 +144,41 @@ def sign_out(request):
 
     return redirect('profile_rest')
 
+#########################################################
+#                     PROFILE FUNCTIONS                 #
+#########################################################
+
+@cache_control(no_cache=True, must_revalidate=True, no_store=True) # Prevents from browser caching page and hence rendering it when user is already logged out
+@owner_required
+def profile(request):
+    """
+    Profile page of owner.
+    """
+    owner_id = request.session['owner_id'][0]
+    print(owner_id)
+    if request.method == 'POST':
+        form = AddRestaurantForm(request.POST)
+        print("Request: POST")
+        if form.is_valid():
+            print("Valid form")
+            name = form.cleaned_data['name']
+            address = form.cleaned_data['address']
+            rest = db.addRestaurant(mod.Restaurant(name=name, location=address, owner_id=owner_id))
+
+            # Update list of allowed restaurants
+            list = request.session['owner_id'][1]
+            list.append(rest.id)
+            request.session['owner_id'] = (owner_id, list)
+    else:
+        form = AddRestaurantForm()
+
+    restaurants = db.getRestaurantsOfOwner(owner_id)
+    return render(request, 'owners/profile.html', {'restaurants': restaurants,'form': form})
+
+#########################################################
+#                    DASHBOARD FUNCTIONS                #
+#########################################################
+
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 @restaurant_access_required
 def restaurant_dashboard(request, restaurant_id: int):
@@ -126,28 +206,7 @@ def restaurant_dashboard(request, restaurant_id: int):
     }
     return render(request, 'owners/dashboard.html', context)
 
-# Restaurant products view
-@cache_control(no_cache=True, must_revalidate=True, no_store=True)
-@restaurant_access_required
-def restaurant_products(request, unique_id: int):
-    """
-    Page where owners can add or remove items from the restaurant menu
-    """
-    restaurant = db.getRestaurantByID(unique_id)
-    
-    menu = db.getRestaurantMenu(restaurant.id)
-
-    menu_json = [item.to_json(ensure_ascii=False) for item in menu]
-    # Parse each JSON string into a JSON object
-    menu = [json.loads(item) for item in menu_json]
-
-    context = {
-        'restaurant': restaurant,
-        'menu': menu,
-    }
-    return render(request, 'owners/products.html', context)
-
-@csrf_exempt
+#@csrf_exempt
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 @restaurant_access_required
 def save_table_position(request, restaurant_id, table_id):
@@ -195,9 +254,81 @@ def delete_table(request, restaurant_id: int, table_id: int):
             return JsonResponse({'status': 'success'})
     return JsonResponse({'status': 'failed'})
 
-def customers_view(request):
-    context = {}
-    return render(request, 'owners/customers.html', context)
+#########################################################
+#             MENU MANAGEMENT FUNCTIONS                 #
+#########################################################
+
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+@restaurant_access_required
+def restaurant_products(request, unique_id: int):
+    """
+    Page where owners can add or remove items from the restaurant menu
+    """
+    restaurant = db.getRestaurantByID(unique_id)
+    
+    menu = db.getRestaurantMenu(restaurant.id)
+
+    menu_json = [item.to_json(ensure_ascii=False) for item in menu]
+    # Parse each JSON string into a JSON object
+    menu = [json.loads(item) for item in menu_json]
+
+    context = {
+        'restaurant': restaurant,
+        'menu': menu,
+    }
+    return render(request, 'owners/products.html', context)
+
+@restaurant_access_required
+def remove_menu_items(request, restaurant_id):
+    """
+    Function to remove the item from restaurant menu. It does not remove the item from database, just its relation to the restaurant menu.
+    """
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        success = True
+        for i in data:
+            success = db.removeItemFromRestaurantMenu(i, restaurant_id) and success
+        return JsonResponse({'success': success})
+    return JsonResponse({'success': False})
+
+@restaurant_access_required
+def add_menu_item(request, restaurant_id):
+    """
+    Function to add a new item to restaurant menu. First the new item is created and added to the database, then it is mapped to restaurant menu
+    to indicate that this item belongs on the menu.
+    """
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        name = data["name"]
+        value = data["value"]
+
+        item = db.addNewItem(mod.Item(name=name, value=value))
+        success = db.addItemToRestaurantMenu(restaurant_id, item)
+        return JsonResponse({'success': success})
+    return JsonResponse({'success': False})
+        
+@restaurant_access_required
+def get_items_by_order_id(request, restaurant_id, order_id):
+    """
+    Function to get all items for the given order.
+    """
+    if request.method == "GET":
+        items = db.getItemsByOrderID(order_id) 
+        items_data = [
+            {
+                'name': db.getItemNameByID(item.item_id),
+                'item_id': item.item_id,
+                'quantity': item.quantity,
+                'status': item.status
+            } for item in items
+        ]
+        return JsonResponse({'items': items_data})
+    else:
+        return JsonResponse({'error': 'Invalid request method'}, status=405)
+
+#########################################################
+#              ORDER MANAGEMENT FUNCTIONS               #
+#########################################################
 
 @restaurant_access_required
 def mark_item_prepared(request, restaurant_id:int, item_id:int, order_id:int):
@@ -234,101 +365,6 @@ def mark_order_delivered(request, restaurant_id:int, order_id:int):
     return JsonResponse({'success': False}, status=400)
 
 @restaurant_access_required
-def get_items_by_order_id(request, restaurant_id, order_id):
-    """
-    Function to get all items for the given order.
-    """
-    if request.method == "GET":
-        items = db.getItemsByOrderID(order_id) 
-        items_data = [
-            {
-                'name': db.getItemNameByID(item.item_id),
-                'item_id': item.item_id,
-                'quantity': item.quantity,
-                'status': item.status
-            } for item in items
-        ]
-        return JsonResponse({'items': items_data})
-    else:
-        return JsonResponse({'error': 'Invalid request method'}, status=405)
-
-@restaurant_access_required
-def remove_menu_items(request, restaurant_id):
-    """
-    Function to remove the item from restaurant menu. It does not remove the item from database, just its relation to the restaurant menu.
-    """
-    if request.method == 'POST':
-        data = json.loads(request.body)
-        success = True
-        for i in data:
-            success = db.removeItemFromRestaurantMenu(i, restaurant_id) and success
-        return JsonResponse({'success': success})
-    return JsonResponse({'success': False})
-
-@restaurant_access_required
-def add_menu_item(request, restaurant_id):
-    """
-    Function to add a new item to restaurant menu. First the new item is created and added to the database, then it is mapped to restaurant menu
-    to indicate that this item belongs on the menu.
-    """
-    if request.method == 'POST':
-        data = json.loads(request.body)
-        name = data["name"]
-        value = data["value"]
-
-        item = db.addNewItem(mod.Item(name=name, value=value))
-        success = db.addItemToRestaurantMenu(restaurant_id, item)
-        return JsonResponse({'success': success})
-    return JsonResponse({'success': False})
-        
-
-from data.model import Restaurant
-from django.http import Http404
-
-@restaurant_access_required
-def settings_view(request, restaurant_id):
-    """
-    Settings page for owner profile.
-    """
-    try:
-        restaurant = Restaurant.objects.get(id=restaurant_id)
-    except Restaurant.DoesNotExist:
-        raise Http404("Restaurant does not exist")
-
-    context = {
-        'restaurant': restaurant,
-    }
-    return render(request, 'owners/settings.html', context)
-
-import qrcode
-from io import BytesIO
-
-def generate_qr_code(request, table_id):
-    """
-    Page with the QR code for given table, so that users can scan it and order.
-    """
-    qr = qrcode.QRCode(
-        version=1,  # controls the size of the QR Code, higher value means bigger size
-        error_correction=qrcode.constants.ERROR_CORRECT_L,  # controls the error correction used for the QR Code
-        box_size=20,  # size of each box in pixels
-        border=4,  # thickness of the border (in boxes)
-    )
-
-    # Add data to the QR code
-    qr.add_data(table_id)
-    qr.make(fit=True)
-    
-    # Create an image from the QR Code instance
-    img = qr.make_image(fill_color="black", back_color="white")
-    
-    # Save the image in a BytesIO object
-    img_io = BytesIO()
-    img.save(img_io, format='PNG')
-    img_io.seek(0)
-    
-    # Return the image as an HTTP response
-    return HttpResponse(img_io, content_type='image/png')
-
 def revive_order(request, restaurant_id, table_id):
     try:
         # Find the last finished order by table_id
@@ -348,8 +384,11 @@ def revive_order(request, restaurant_id, table_id):
         print(f"Error reviving order: {e}")
         return JsonResponse({'success': False, 'error': str(e)})
     
-################### KITCHEN FUNCTIONS ###################
+#########################################################
+#              KITCHEN MANAGEMENT VIEWS                 #
+#########################################################
 
+@restaurant_access_required
 def kitchen_settings(request, restaurant_id):
     restaurant = db.getRestaurantByID(restaurant_id)
     kitchens = db.get_kitchens_by_restaurant_id(restaurant_id)
@@ -372,20 +411,19 @@ def kitchen_settings(request, restaurant_id):
     print(context)
     return render(request, 'owners/kitchen_settings.html', context)
 
+@restaurant_access_required
 def get_kitchen_items(request, restaurant_id, kitchen_id):
     items = db.get_items_by_kitchen_id(kitchen_id)
     items_data = [{'id': item.id, 'name': item.name} for item in items]
     return JsonResponse({'items': items_data})
 
+@restaurant_access_required
 def get_items_not_in_kitchen(request, restaurant_id, kitchen_id):
     items = db.get_items_not_in_kitchen(restaurant_id, kitchen_id)
     items_data = [{'id': item.id, 'name': item.name} for item in items]
     return JsonResponse({'items': items_data})
 
-def get_kitchens_by_restaurant(restaurant_id: int):
-    # vsi kitcheni
-    return db.get_kitchens_by_restaurant_id(restaurant_id)
-
+@restaurant_access_required
 def add_kitchen(request, restaurant_id):
     if request.method == 'POST':
         name = request.POST.get('name')
@@ -394,22 +432,26 @@ def add_kitchen(request, restaurant_id):
             return redirect('kitchen_settings', restaurant_id=restaurant_id)
     return redirect('kitchen_settings', restaurant_id=restaurant_id)
 
+@restaurant_access_required
 def get_items_for_kitchen(request, restaurant_id, kitchen_id):
     items = db.get_items_not_in_kitchen(restaurant_id, kitchen_id)
     return JsonResponse({'items': items})
 
+@restaurant_access_required
 def add_item_to_kitchen(request, restaurant_id, kitchen_id):
     if request.method == 'POST':
         item_id = request.POST.get('item_id')
         db.add_item_to_kitchen(kitchen_id, item_id)
     return redirect('kitchen_settings', restaurant_id=restaurant_id)
 
+@restaurant_access_required
 def delete_item_from_kitchen(request, restaurant_id, kitchen_id, item_id):
     if request.method == 'POST':
         base = db.remove_item_from_kitchen(kitchen_id, item_id)
         print(base)
     return redirect('kitchen_settings', restaurant_id=restaurant_id)
 
+@restaurant_access_required
 def delete_kitchen(request, restaurant_id, kitchen_id):
     if request.method == "POST":
         # Assuming you have a function in db to delete a kitchen by its ID
@@ -421,9 +463,10 @@ def delete_kitchen(request, restaurant_id, kitchen_id):
     else:
         return JsonResponse({'error': 'Invalid request method'}, status=405)
 
-
 #########################################################
-################### KITCHEN VIEW ##################
+#                    KITCHEN VIEW                       #
+#########################################################
+
 def kitchen_view(request, restaurant_id: int, kitchen_id: int = None):
     """
     Kitchen view for a restaurant. Displays kitchens and their associated ordered items.
@@ -474,6 +517,8 @@ def kitchen_view(request, restaurant_id: int, kitchen_id: int = None):
     return render(request, 'owners/kitchen_view.html', context)
 
 #########################################################
+#                  ANALYTICS VIEW                       #
+#########################################################
 
 def analytics_view(request, restaurant_id):
     """
@@ -501,3 +546,34 @@ def analytics_view(request, restaurant_id):
 
     return render(request, 'owners/analytics.html', context)
 
+#########################################################
+#                    QR GENERATION                      #
+#########################################################
+
+def generate_qr_code(request, table_id):
+    """
+    Page with the QR code for given table, so that users can scan it and order.
+    """
+    qr = qrcode.QRCode(
+        version=1,  # controls the size of the QR Code, higher value means bigger size
+        error_correction=qrcode.constants.ERROR_CORRECT_L,  # controls the error correction used for the QR Code
+        box_size=20,  # size of each box in pixels
+        border=4,  # thickness of the border (in boxes)
+    )
+
+    # Add data to the QR code
+    qr.add_data(table_id)
+    qr.make(fit=True)
+    
+    # Create an image from the QR Code instance
+    img = qr.make_image(fill_color="black", back_color="white")
+    
+    # Save the image in a BytesIO object
+    img_io = BytesIO()
+    img.save(img_io, format='PNG')
+    img_io.seek(0)
+    
+    # Return the image as an HTTP response
+    return HttpResponse(img_io, content_type='image/png')
+
+#########################################################

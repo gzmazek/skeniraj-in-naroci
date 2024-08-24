@@ -317,10 +317,10 @@ if (openTableId) {
             })
             .then((response) => response.json())
             .then((data) => {
-                if (data.status === "success") {
+                if (data.status === "success") { 
                     document.getElementById(`table-${tableId}`).remove();
                     console.log(`Table deleted: ${tableId}`); // Debugging line
-                    location.reload(); // Reload the page so that changes appear
+                    window.location.reload(); // Reload the page so that changes appear
                 } else {
                     console.error("Error deleting table");
                 }
