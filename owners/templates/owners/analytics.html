@@ -95,6 +95,31 @@
             </div>
         </div>
 
+        <!-- Most Common Item Pairs Table -->
+        <div class="card mb-3">
+            <div class="card-header">Most Common Item Pairs</div>
+            <div class="card-body">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Item 1</th>
+                            <th>Item 2</th>
+                            <th>Pair Count</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item_1_name, item_2_name, pair_count in common_item_pairs_data %}
+                        <tr>
+                            <td>{{ item_1_name }}</td>
+                            <td>{{ item_2_name }}</td>
+                            <td>{{ pair_count }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
     </div>
 </div>
 

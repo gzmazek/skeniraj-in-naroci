@@ -483,10 +483,11 @@ def analytics_view(request, restaurant_id):
     item_revenue_data = db.get_item_revenue_by_restaurant(restaurant_id)
     avg_order_value_data = db.get_avg_order_value_by_restaurant(restaurant_id)
     revenue_by_customer_type_data = db.get_revenue_by_customer_type(restaurant_id)
-    
+
     # Fetch data for orders per hour and revenue per hour
     orders_per_hour_data = db.get_orders_per_hour(restaurant_id)
     revenue_per_hour_data = db.get_revenue_per_hour(restaurant_id)
+    common_item_pairs_data = db.get_common_item_pairs(restaurant_id)
 
     context = {
         'restaurant': restaurant,
@@ -495,6 +496,8 @@ def analytics_view(request, restaurant_id):
         'revenue_by_customer_type_data': revenue_by_customer_type_data,
         'orders_per_hour_data': orders_per_hour_data,
         'revenue_per_hour_data': revenue_per_hour_data,
+        'common_item_pairs_data': common_item_pairs_data,  # Include new data here
     }
+
     return render(request, 'owners/analytics.html', context)
 

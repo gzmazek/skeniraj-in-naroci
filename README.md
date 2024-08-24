@@ -1,4 +1,4 @@
-# Skeniraj in naroci
+# Skeniraj in naroci (Scan&Order)
 
 Projekt pri predmetu Osnove podatkovnih baz iz študijskega leta 2023/2024 na Fakulteti za matematiko in fiziko Univerze v Ljubljani.
 
@@ -129,4 +129,3 @@ END $$;
 ### Zaključek
 
 Projekt "Skeniraj in naroci" je zasnovan kot celovita rešitev za upravljanje naročil v restavracijah z dodatnimi analitičnimi orodji za izboljšanje poslovanja. Simulacija podatkov za restavracijo *Kavarna Rog* omogoča testiranje funkcionalnosti aplikacije in demonstracijo naprednih SQL poizvedb, ki so uporabljene za analizo poslovnih podatkov.
-```

@@ -159,6 +159,47 @@ def get_revenue_per_hour(restaurant_id):
     with connection.cursor() as cursor:
         cursor.execute(query, (restaurant_id,))
         return cursor.fetchall()
+    
+def get_common_item_pairs(restaurant_id):
+    """
+    Fetches the most common pairs of items ordered together for a specific restaurant.
+    """
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            WITH item_pairs AS (
+                SELECT 
+                    oi1.item_id AS item_1,
+                    oi2.item_id AS item_2,
+                    COUNT(*) AS pair_count
+                FROM 
+                    OrderItem oi1
+                JOIN 
+                    OrderItem oi2 ON oi1.customer_order_id = oi2.customer_order_id AND oi1.item_id < oi2.item_id
+                JOIN 
+                    CustomerOrder co ON oi1.customer_order_id = co.id
+                JOIN 
+                    DiningTable dt ON co.table_id = dt.id
+                WHERE 
+                    dt.restaurant_id = %s
+                GROUP BY 
+                    oi1.item_id, oi2.item_id
+            )
+            SELECT 
+                i1.name AS item_1_name,
+                i2.name AS item_2_name,
+                pair_count
+            FROM 
+                item_pairs
+            JOIN 
+                Item i1 ON item_pairs.item_1 = i1.id
+            JOIN 
+                Item i2 ON item_pairs.item_2 = i2.id
+            ORDER BY 
+                pair_count DESC
+            LIMIT 10;
+        """, [restaurant_id])
+        return cursor.fetchall()
+
 
 #########################################################
 
