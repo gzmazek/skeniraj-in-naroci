@@ -41,4 +41,6 @@ urlpatterns = [
 
     path('<int:restaurant_id>/kitchen_view/', views.kitchen_view, name='kitchen_view'),
     path('<int:restaurant_id>/kitchen_view/<int:kitchen_id>/', views.kitchen_view, name='kitchen_view_filtered'),
+
+    path('<int:restaurant_id>/analytics/', views.analytics_view, name='analytics_view'),
 ]

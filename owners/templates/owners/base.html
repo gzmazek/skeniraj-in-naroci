@@ -97,14 +97,14 @@
             </a>
         </li>
         <li class="nav-item">
-            <a class="nav-link d-flex align-items-center" href="#">
-                Orders
-            </a>
-        </li>
-        <li class="nav-item">
             <a class="nav-link {% active request 'restaurant_products' %} d-flex align-items-center" href="{% url 'restaurant_products' restaurant.id %}">
                 Products
             </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {% active request 'analytics_view' %} d-flex align-items-center" href="{% url 'analytics_view' restaurant.id %}">
+              Analytics
+          </a>
         </li>
         <li class="nav-item">
             <a class="nav-link {% active request 'kitchen_settings' %} d-flex align-items-center" href="{% url 'kitchen_settings' restaurant.id %}">

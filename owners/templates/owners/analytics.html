@@ -1,0 +1,170 @@
+{% extends 'owners/base.html' %}
+
+{% block title %}Analytics - {{ restaurant.name }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center mb-3 border-bottom">
+    <h1 class="h2">Analytics for {{ restaurant.name }}</h1>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+
+        <!-- Total Revenue by Item Table -->
+        <div class="card mb-3">
+            <div class="card-header">Total Revenue by Item</div>
+            <div class="card-body">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Item Name</th>
+                            <th>Total Revenue (€)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for _, item_name, total_revenue in item_revenue_data %}
+                        <tr>
+                            <td>{{ item_name }}</td>
+                            <td>{{ total_revenue | floatformat:2 }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Average Order Value Table -->
+        <div class="card mb-3">
+            <div class="card-header">Average Order Value</div>
+            <div class="card-body">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Restaurant Name</th>
+                            <th>Average Order Value (€)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for restaurant_name, avg_order_value in avg_order_value_data %}
+                        <tr>
+                            <td>{{ restaurant_name }}</td>
+                            <td>{{ avg_order_value | floatformat:2 }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Revenue by Customer Type Table -->
+        <div class="card mb-3">
+            <div class="card-header">Revenue by Customer Type</div>
+            <div class="card-body">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Customer Type</th>
+                            <th>Total Revenue (€)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for customer_type, total_revenue in revenue_by_customer_type_data %}
+                        <tr>
+                            <td>{{ customer_type }}</td>
+                            <td>{{ total_revenue | floatformat:2 }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Orders Per Hour Chart -->
+        <div class="card mb-3">
+            <div class="card-header">Orders Per Hour</div>
+            <div class="card-body">
+                <canvas id="ordersPerHourChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Revenue Per Hour Chart -->
+        <div class="card mb-3">
+            <div class="card-header">Revenue Per Hour (€)</div>
+            <div class="card-body">
+                <canvas id="revenuePerHourChart"></canvas>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Prepare data for Orders Per Hour Chart
+    const ordersPerHourCtx = document.getElementById('ordersPerHourChart').getContext('2d');
+    const ordersPerHourChart = new Chart(ordersPerHourCtx, {
+        type: 'line',
+        data: {
+            labels: [{% for hour, _ in orders_per_hour_data %}"{{ hour }}", {% endfor %}],
+            datasets: [{
+                label: 'Number of Orders',
+                data: [{% for _, count in orders_per_hour_data %}{{ count }}, {% endfor %}],
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 2,
+                fill: false
+            }]
+        },
+        options: {
+            scales: {
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Hour of Day'
+                    }
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: 'Number of Orders'
+                    }
+                }
+            }
+        }
+    });
+
+    // Prepare data for Revenue Per Hour Chart
+    const revenuePerHourCtx = document.getElementById('revenuePerHourChart').getContext('2d');
+    const revenuePerHourChart = new Chart(revenuePerHourCtx, {
+        type: 'line',
+        data: {
+            labels: [{% for hour, _ in revenue_per_hour_data %}"{{ hour }}", {% endfor %}],
+            datasets: [{
+                label: 'Total Revenue (€)',
+                data: [{% for _, revenue in revenue_per_hour_data %}{{ revenue }}, {% endfor %}],
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 2,
+                fill: false
+            }]
+        },
+        options: {
+            scales: {
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Hour of Day'
+                    }
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: 'Total Revenue (€)'
+                    }
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

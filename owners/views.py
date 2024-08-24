@@ -474,3 +474,27 @@ def kitchen_view(request, restaurant_id: int, kitchen_id: int = None):
     return render(request, 'owners/kitchen_view.html', context)
 
 #########################################################
+
+def analytics_view(request, restaurant_id):
+    """
+    Displays analytics for the specified restaurant.
+    """
+    restaurant = db.getRestaurantByID(restaurant_id)  # Assuming this function exists
+    item_revenue_data = db.get_item_revenue_by_restaurant(restaurant_id)
+    avg_order_value_data = db.get_avg_order_value_by_restaurant(restaurant_id)
+    revenue_by_customer_type_data = db.get_revenue_by_customer_type(restaurant_id)
+    
+    # Fetch data for orders per hour and revenue per hour
+    orders_per_hour_data = db.get_orders_per_hour(restaurant_id)
+    revenue_per_hour_data = db.get_revenue_per_hour(restaurant_id)
+
+    context = {
+        'restaurant': restaurant,
+        'item_revenue_data': item_revenue_data,
+        'avg_order_value_data': avg_order_value_data,
+        'revenue_by_customer_type_data': revenue_by_customer_type_data,
+        'orders_per_hour_data': orders_per_hour_data,
+        'revenue_per_hour_data': revenue_per_hour_data,
+    }
+    return render(request, 'owners/analytics.html', context)
+
