@@ -86,8 +86,6 @@ from decimal import Decimal
 
 from .model import User, Restaurant, CustomerOrder, OrderItem, Order, MenuItem, Table, Item, Kitchen
 
-from .auth_public import db, host, user, password
-
 from django.db import connection
 
 #########################################################
@@ -402,11 +400,6 @@ def getOrdersByTableID(table_id: int) -> List[CustomerOrder]:
     
     arr = []
     for order in orders:
-        order_id = order[0]
-
-        # Use the new function to fetch the items for this order
-        # order_items = getItemsByOrderID(order_id)
-
         # Create the CustomerOrder object with its items
         arr.append(CustomerOrder(
             id=order[0],
@@ -553,7 +546,7 @@ def getItemNameByID(item_id: int) -> str:
         cursor.execute("SELECT name FROM Item WHERE id = %s", (item_id,))
         result = cursor.fetchone()
         if result:
-            return result[0]  # The name of the item
+            return result[0]
         return None
 
 def markItemAsPrepared(item_id, order_id):
@@ -581,7 +574,7 @@ def markItemAsPrepared(item_id, order_id):
                 update_order_cmd = "UPDATE CustomerOrder SET status = 'PREPARED' WHERE id = %s"
                 cursor.execute(update_order_cmd, [order_id])
 
-            connection.commit()  # Commit all changes to the database
+            connection.commit()
         return True
     except Exception as e:
         print(f"Error marking item as prepared: {e}")
@@ -592,6 +585,9 @@ def markItemAsPrepared(item_id, order_id):
 #########################################################
 
 def addTable(table: Table):
+    """
+    Adds a new dining table to the restaurant.
+    """
     with connection.cursor() as cursor:
         if table.position_x is None or table.position_y is None:
             table.position_x = 1  
@@ -603,6 +599,9 @@ def addTable(table: Table):
     return table
 
 def getTablesByRestaurant(restaurant_id: int):
+    """
+    Returns the list of tables that belong to given restaurant
+    """
     tables = []
     with connection.cursor() as cursor:
         cmd = "SELECT id, restaurant_id, position_x, position_y FROM DiningTable WHERE restaurant_id = %s"
@@ -614,6 +613,9 @@ def getTablesByRestaurant(restaurant_id: int):
     return tables
 
 def getTableByID(table_id: int):
+    """
+    Returns the table with given id if it exists.
+    """
     with connection.cursor() as cursor:
         cmd = "SELECT id, restaurant_id, position_x, position_y FROM DiningTable WHERE id = %s"
         data = (table_id,)
@@ -624,6 +626,9 @@ def getTableByID(table_id: int):
     return None
 
 def deleteTable(table_id: int):
+    """
+    Deletes the table from the database.
+    """
     with connection.cursor() as cursor:
         cmd = "DELETE FROM DiningTable WHERE id = %s"
         data = (table_id,)
@@ -714,6 +719,9 @@ def remove_item_from_kitchen(kitchen_id, item_id):
         return False
 
 def get_items_by_kitchen_id(kitchen_id):
+    """
+    Returns list of items for given kitchen.
+    """
     with connection.cursor() as cursor:
         cursor.execute("""
             SELECT i.id, i.name

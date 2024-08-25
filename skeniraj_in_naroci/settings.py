@@ -27,7 +27,7 @@ SECRET_KEY = 'django-insecure-e5*=(wjwnouvp2^q_#^=)(u(2c(wq$**b+c+)_*4738f37og%!
 DEBUG = True
 
 # SECURITY WARNING: don't deploy with these IPs in allowed hosts 
-ALLOWED_HOSTS = ['192.168.0.33','192.168.43.65','127.0.0.1']
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition

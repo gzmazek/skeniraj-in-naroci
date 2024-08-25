@@ -1,3 +1,41 @@
+"""
+VIEWS.PY - TABLE OF CONTENTS
+============================
+
+1. IMPORTS
+--------------------------------
+- Django imports (render, redirect, HttpResponse, etc.)
+- Forms and Models
+- Logging setup
+
+2. HOME PAGE
+--------------------------------
+- home(request)
+
+3. PROFILE VIEWS
+--------------------------------
+- profile(request)
+- settings(request)
+
+4. AUTHENTICATION VIEWS
+--------------------------------
+- sign_in(request)
+- sign_out(request)
+- register(request)
+
+4. ORDER VIEWS
+--------------------------------
+- order(request, table_id: int)
+- order_confirm(request)
+- place_order(request)
+
+5. QR SCANNING VIEWS
+--------------------------------
+- scan_qr(request)
+- process_qr(request)
+
+"""
+
 from django.shortcuts import render, redirect
 from .forms import RegistrationForm, SignInForm, ChangePasswordForm
 import hashlib
@@ -13,114 +51,19 @@ import json
 
 from users.decorators import user_sign_in_required, active_order
 
+
+#########################################################
+#                   HOME FUNCTIONS                      #
+#########################################################
 def home(request):
     """
     Home page of the website.
     """
     return render(request, 'users/home.html')
 
-@user_sign_in_required
-def scan_qr(request):
-    """
-    Page to scan QR code.
-    """
-    return render(request, 'users/qr_reader.html')
-
-@csrf_exempt
-def process_qr(request):
-    """
-    Function to process the QR code data and redirect accordingly.
-    """
-    if request.method == 'POST':
-        qr_data = request.POST.get('qr_data')
-
-        # Try to convert qr_data to an integer and check if it succeeds
-        try:
-            qr_data = int(qr_data)
-            is_integer = True
-        except ValueError:
-            is_integer = False
-        
-        # Process the QR data based on its type
-        if is_integer:
-            # Logic for handling integer qr_data
-            redirect_url = f'http://127.0.0.1:8000/order/{qr_data}/'  # IMPORTANT: This URL needs to be changed when app will be deplyed to some domain
-        else:
-            return JsonResponse({'message': 'Invalid QR code'}, status=400)
-
-        response_data = {
-            'redirect_url': redirect_url
-        }
-        return JsonResponse(response_data)
-    else:
-        return JsonResponse({'message': 'Invalid request method.'}, status=400)
-
-def register(request):
-    """
-    Register page to create new account. This account can be used both as a user or as a restaurant owner.
-    """
-    if request.method == 'POST':
-        form = RegistrationForm(request.POST)
-        if form.is_valid():
-            email = form.cleaned_data['email']
-            name = form.cleaned_data['name']
-            surname = form.cleaned_data['surname']
-            password = form.cleaned_data['password']
-            repeatPassword = form.cleaned_data['repeatPassword']
-
-            # check if user with this email already exists
-            if db.getUserByEmail(email) is not None:
-                messages.error(request, 'Email already in use')
-                return render(request, 'users/register.html', {'form': form})
-
-            # check if password fields are the same
-            if password and repeatPassword and password != repeatPassword:
-                messages.error(request, 'Passwords do not match')
-                return render(request, 'users/register.html', {'form': form})
-            
-            hashed_password = hashlib.sha256(password.encode()).hexdigest()
-            user = mod.User(email=email, password=hashed_password, name=name, surname=surname)
-            db.addAppuser(user) # Adds user to the database
-            return redirect('home') # Redirect to user home page. For now this just redirects to home page.
-    else:
-        form = RegistrationForm()
-    return render(request, 'users/register.html', {'form': form})
-
-def sign_in(request):
-    """
-    Sign-in page for users.
-    """
-    if request.method == 'POST':
-        form = SignInForm(request.POST)
-        if form.is_valid():
-            email = form.cleaned_data['email']
-            password = form.cleaned_data['password']
-            remember_me = form.cleaned_data['remember_me']
-
-            user =  db.getUserByEmail(email) # gets user from database
-
-            if user is None: 
-                # User with this email does not exist
-                messages.error(request, 'Email or password is incorrect')
-                return render(request, 'users/sign-in.html', {'form': form})
-            
-            hashed_password = hashlib.sha256(password.encode()).hexdigest()
-            if hashed_password != user.password: 
-                # Incorrect password
-                messages.error(request, 'Email or password is incorrect')
-                return render(request, 'users/sign-in.html', {'form': form})
-            
-            # Store cookie session by user id
-            request.session['user_id'] = user.id
-            return redirect('profile')    
-    else: # method GET
-        if 'user_id' in request.session:
-            # If user is already logged in redirects to his profile page
-            return redirect('profile')
-
-        form = SignInForm()
-    return render(request, 'users/sign-in.html', {'form': form})
-
+#########################################################
+#                   PROFILE FUNCTIONS                      #
+#########################################################
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 @user_sign_in_required
 def profile(request):
@@ -175,6 +118,89 @@ def settings(request):
         form = ChangePasswordForm()
     return render(request, 'users/settings.html', {'form': form})
 
+#########################################################
+#              AUTHENTICATION FUNCTIONS                 #
+#########################################################
+def sign_in(request):
+    """
+    Sign-in page for users.
+    """
+    if request.method == 'POST':
+        form = SignInForm(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data['email']
+            password = form.cleaned_data['password']
+            remember_me = form.cleaned_data['remember_me']
+
+            user =  db.getUserByEmail(email) # gets user from database
+
+            if user is None: 
+                # User with this email does not exist
+                messages.error(request, 'Email or password is incorrect')
+                return render(request, 'users/sign-in.html', {'form': form})
+            
+            hashed_password = hashlib.sha256(password.encode()).hexdigest()
+            if hashed_password != user.password: 
+                # Incorrect password
+                messages.error(request, 'Email or password is incorrect')
+                return render(request, 'users/sign-in.html', {'form': form})
+            
+            # Store cookie session by user id
+            request.session['user_id'] = user.id
+            return redirect('profile')    
+    else: # method GET
+        if 'user_id' in request.session:
+            # If user is already logged in redirects to his profile page
+            return redirect('profile')
+
+        form = SignInForm()
+    return render(request, 'users/sign-in.html', {'form': form})
+
+@user_sign_in_required
+def sign_out(request):
+    """
+    Sign-out and clear the session of the user.
+    """
+    # Clear session
+    del request.session['user_id']
+    
+    # Redirect to the home page
+    return redirect('home')
+
+def register(request):
+    """
+    Register page to create new account. This account can be used both as a user or as a restaurant owner.
+    """
+    if request.method == 'POST':
+        form = RegistrationForm(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data['email']
+            name = form.cleaned_data['name']
+            surname = form.cleaned_data['surname']
+            password = form.cleaned_data['password']
+            repeatPassword = form.cleaned_data['repeatPassword']
+
+            # check if user with this email already exists
+            if db.getUserByEmail(email) is not None:
+                messages.error(request, 'Email already in use')
+                return render(request, 'users/register.html', {'form': form})
+
+            # check if password fields are the same
+            if password and repeatPassword and password != repeatPassword:
+                messages.error(request, 'Passwords do not match')
+                return render(request, 'users/register.html', {'form': form})
+            
+            hashed_password = hashlib.sha256(password.encode()).hexdigest()
+            user = mod.User(email=email, password=hashed_password, name=name, surname=surname)
+            db.addAppuser(user) # Adds user to the database
+            return redirect('home') # Redirect to user home page. For now this just redirects to home page.
+    else:
+        form = RegistrationForm()
+    return render(request, 'users/register.html', {'form': form})
+
+#########################################################
+#                  ORDER FUNCTIONS                      #
+#########################################################
 @user_sign_in_required
 def order(request, table_id: int):
     """
@@ -246,13 +272,52 @@ def place_order(request):
 
     return redirect('profile')
 
+
+#########################################################
+#             QR CODE SCANNING FUNCTIONS                #
+#########################################################
 @user_sign_in_required
-def sign_out(request):
+def scan_qr(request):
     """
-    Sign-out and clear the session of the user.
+    Page to scan QR code.
     """
-    # Clear session
-    del request.session['user_id']
+    return render(request, 'users/qr_reader.html')
+
+@csrf_exempt
+def process_qr(request):
+    """
+    Function to process the QR code data and redirect accordingly.
+    """
+    if request.method == 'POST':
+        qr_data = request.POST.get('qr_data')
+
+        # Try to convert qr_data to an integer and check if it succeeds
+        try:
+            qr_data = int(qr_data)
+            is_integer = True
+        except ValueError:
+            is_integer = False
+        
+        # Process the QR data based on its type
+        if is_integer:
+            # Logic for handling integer qr_data
+            redirect_url = f'http://127.0.0.1:8000/order/{qr_data}/'  # IMPORTANT: This URL needs to be changed when app will be deplyed to some domain
+        else:
+            return JsonResponse({'message': 'Invalid QR code'}, status=400)
+
+        response_data = {
+            'redirect_url': redirect_url
+        }
+        return JsonResponse(response_data)
+    else:
+        return JsonResponse({'message': 'Invalid request method.'}, status=400)
+
+
+
+
+
+
+
+
+
     
-    # Redirect to the home page
-    return redirect('home')
