@@ -1,2 +1,9 @@
 #!/bin/bash
-python manage.py runserver 0.0.0.0:8000
+export DJANGO_PORT=8080  # Binder often uses port 8080 for web services
+export DJANGO_SETTINGS_MODULE=myproject.settings  # Replace with your project settings
+export POSTGRES_PORT=5432  # Optional, only if using PostgreSQL
+
+python manage.py runserver 0.0.0.0:${DJANGO_PORT} &
+
+# Execute the command passed to the script
+exec "$@"
