@@ -35,13 +35,7 @@ Projekt "Skeniraj in naroci" je sistem za upravljanje naročil v restavracijah. 
    pip install -r requirements.txt
    ```
 
-4. **Migracija podatkovne baze:**
-
-   ```bash
-   python manage.py migrate
-   ```
-
-5. **Zagon razvojnega strežnika:**
+4. **Zagon razvojnega strežnika:**
 
    ```bash
    python manage.py runserver
