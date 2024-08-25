@@ -40,17 +40,18 @@ Projekt "Skeniraj in naroci" je sistem za upravljanje naročil v restavracijah. 
    ```bash
    python manage.py runserver
    ```
+   Terminal izpiše na katerem naslovu se nahaja spletna aplikacija. Najverjetneje bo to http://127.0.0.1:8000/ ali nekaj podobnega.
 
 ### Uporaba Aplikacije
 
 1. **Prijava:**
-   Prijavite se z uporabniškim računom. Če račun še ne obstaja, ga lahko ustvarite prek administratorskega vmesnika ali pa dodate uporabnike neposredno v bazo.
+   Prijavite se z uporabniškim računom. Če račun še ne obstaja, ga lahko ustvarite prek obrazca za registracijo. Isti račun se lahko uporabi za namene naročanja ter za opravljanje z restavracijo.
 
 2. **Dodajanje Restavracije:**
    V navigacijskem meniju izberite možnost za dodajanje nove restavracije. Po vnosu podatkov o restavraciji (ime, lokacija) lahko začnete upravljati z meniji, mizami in naročili.
 
 3. **Upravljanje Menijev:**
-   Po dodajanju restavracije lahko urejate meni restavracije in dodajate nove artikle. Vsak artikel ima določeno ceno in oznake (tags).
+   Po dodajanju restavracije lahko urejate meni restavracije in dodajate nove artikle. Vsakemu artiklu lahko določite ceno.
 
 4. **Oddaja Naročil:**
    Uporabniki lahko skenirajo QR kodo, povezano z določeno mizo v restavraciji, in oddajo naročilo neposredno iz mobilne naprave.
