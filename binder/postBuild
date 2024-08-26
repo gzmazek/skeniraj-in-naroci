@@ -1,5 +1,9 @@
 #!/bin/bash
 echo "Post build is running..."
+chmod +x postBuild
+chmod +x start
+
+
 jupyter serverextension enable --sys-prefix jupyter_server_proxy
 
 ./binder/start
