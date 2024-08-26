@@ -84,7 +84,7 @@ DATABASES = {
         'USER': 'javnost',
         'PASSWORD': 'javnogeslo',
         'HOST': 'baza.fmf.uni-lj.si',
-        'PORT': '5432',
+        'PORT': '443',
     }
 }
 
