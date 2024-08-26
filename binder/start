@@ -4,6 +4,7 @@ echo "Start script is running..."
 export DJANGO_PORT=8080  # Binder often uses port 8080 for web services
 export DJANGO_SETTINGS_MODULE=skeniraj_in_naroci.settings  # Replace with your project settings
 export POSTGRES_PORT=443  # Optional, only if using PostgreSQL
+export DJANGO_ROOT=${JUPYTERHUB_SERVICE_PREFIX}proxy/${DJANGO_PORT}/
 
 export DB_HOST='baza.fmf.uni-lj.si'
 export DB_NAME='sem2024_vitol'
