@@ -16,21 +16,31 @@ Projekt "Skeniraj in naroci" je sistem za upravljanje naročil v restavracijah. 
 ### Namestitev
 
 1. **Kloniranje repozitorija:**
-
+   V željeni lokaciji na računalniku najprej klonirajmo repozitorij.
    ```bash
    git clone https://github.com/gzmazek/skeniraj-in-naroci.git
    cd skeniraj-in-naroci
    ```
 
 2. **Nastavitev virtualnega okolja:**
-
+   Potrebna je vzpostavitev virtualnega okolja v lokaciji kamor smo klonirali repozitorij.
    ```bash
    python -m venv venv
+   ```
+   Virtualno okolje je potrebno še aktivirati:
+   ```bash
    source venv/bin/activate  # Na Windows: venv\Scripts\activate
    ```
+   Po pravilni aktivaciji bi v terminalu morali videti `(venv)`.
 
 3. **Namestitev odvisnosti:**
-
+   Za namestitev odvisnosti se je najprej treba premakniti nazaj, kjer se nahaja `requirements.txt` datoteka.
+   Do tja lahko pridemo z ukazom:
+   ```bash
+   cd ..
+   cd ..
+   ```
+   Sedaj bi se morali nahajati v pravilni lokaciji da lahko poženemo:
    ```bash
    pip install -r requirements.txt
    ```
@@ -41,6 +51,7 @@ Projekt "Skeniraj in naroci" je sistem za upravljanje naročil v restavracijah. 
    python manage.py runserver
    ```
    Terminal izpiše na katerem naslovu se nahaja spletna aplikacija. Najverjetneje bo to http://127.0.0.1:8000/ ali nekaj podobnega.
+   Za prihodnjo uporabo aplikacije, ni potrebno vsakič klonirati repozitorija in nameščanja odvisnosti. Je pa potrebno vedno pred vsako uporabo aktivirati virtualno okolje.
 
 ### Uporaba Aplikacije
 
@@ -126,4 +137,5 @@ END $$;
 Projekt "Skeniraj in naroci" je zasnovan kot celovita rešitev za upravljanje naročil v restavracijah z dodatnimi analitičnimi orodji za izboljšanje poslovanja. Simulacija podatkov za restavracijo *Kavarna Rog* omogoča testiranje funkcionalnosti aplikacije in demonstracijo naprednih SQL poizvedb, ki so uporabljene za analizo poslovnih podatkov.
 
 ### Binder
+Uporaba binderja trenutno ne deluje. Za uporabo sledite navodilom zgoraj.
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/gzmazek/skeniraj-in-naroci/main?labpath=proxy%2F8080)
