@@ -130,7 +130,6 @@ def sign_in(request):
         if form.is_valid():
             email = form.cleaned_data['email']
             password = form.cleaned_data['password']
-            remember_me = form.cleaned_data['remember_me']
 
             user =  db.getUserByEmail(email) # gets user from database
 
