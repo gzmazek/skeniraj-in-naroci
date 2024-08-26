@@ -16,6 +16,7 @@ Projekt "Skeniraj in naroci" je sistem za upravljanje naročil v restavracijah. 
 ### Namestitev
 
 1. **Kloniranje repozitorija:**
+
    V željeni lokaciji na računalniku najprej klonirajmo repozitorij.
    ```bash
    git clone https://github.com/gzmazek/skeniraj-in-naroci.git
@@ -23,6 +24,7 @@ Projekt "Skeniraj in naroci" je sistem za upravljanje naročil v restavracijah. 
    ```
 
 2. **Nastavitev virtualnega okolja:**
+
    Potrebna je vzpostavitev virtualnega okolja v lokaciji kamor smo klonirali repozitorij.
    ```bash
    python -m venv venv
@@ -34,6 +36,7 @@ Projekt "Skeniraj in naroci" je sistem za upravljanje naročil v restavracijah. 
    Po pravilni aktivaciji bi v terminalu morali videti `(venv)`.
 
 3. **Namestitev odvisnosti:**
+
    Za namestitev odvisnosti se je najprej treba premakniti nazaj, kjer se nahaja `requirements.txt` datoteka.
    Do tja lahko pridemo z ukazom:
    ```bash
