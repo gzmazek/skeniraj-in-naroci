@@ -2,6 +2,7 @@
 echo "Post build is running..."
 chmod +x ./binder/start 
 
+python manage.py collectstatic --noinput
 jupyter serverextension enable --sys-prefix jupyter_server_proxy
 
 ./binder/start
