@@ -8,9 +8,6 @@ export DB_NAME='sem2024_vitol'
 export DB_USER='javnost'
 export DB_PASSWORD='javnogeslo'
 
-# Collect static files
-python manage.py collectstatic --noinput
-
 # Start the Django development server
 python manage.py runserver 0.0.0.0:${DJANGO_PORT} &
 
