@@ -4,6 +4,10 @@ Projekt pri predmetu Osnove podatkovnih baz iz študijskega leta 2023/2024 na Fa
 
 Avtorja: Gal Zmazek in Vito Levstik
 
+## README
+- [English](./README.en.md)
+- [Slovensko](./README.md)
+
 ## ER Diagram
 ![ER diagram](https://github.com/gzmazek/skeniraj-in-naroci/blob/main/ER_diagram.png?raw=true)
 
