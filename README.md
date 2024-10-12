@@ -142,7 +142,3 @@ END $$;
 ### Zaključek
 
 Projekt "Skeniraj in naroci" je zasnovan kot celovita rešitev za upravljanje naročil v restavracijah z dodatnimi analitičnimi orodji za izboljšanje poslovanja. Simulacija podatkov za restavracijo *Kavarna Rog* omogoča testiranje funkcionalnosti aplikacije in demonstracijo naprednih SQL poizvedb, ki so uporabljene za analizo poslovnih podatkov.
-
-### Binder
-Uporaba binderja trenutno ne deluje. Za uporabo sledite navodilom zgoraj.
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/gzmazek/skeniraj-in-naroci/main?labpath=proxy%2F8080)
